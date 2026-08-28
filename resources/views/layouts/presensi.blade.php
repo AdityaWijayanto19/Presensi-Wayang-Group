@@ -238,17 +238,6 @@
             padding-bottom: 70px;
         }
 
-        /* LOADER */
-        #loader {
-            position: fixed;
-            left: 0; top: 0; right: 0; bottom: 0;
-            z-index: 99999;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
         /* LISTVIEW */
         .listview {
             display: block;
@@ -605,11 +594,6 @@
 </head>
 
 <body style="background-color: #e9ecef;">
-
-    {{-- Loader --}}
-    <div id="loader">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
 
     {{-- Header --}}
     @yield('header')

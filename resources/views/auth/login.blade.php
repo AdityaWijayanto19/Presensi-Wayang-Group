@@ -222,10 +222,6 @@
 
 <body class="bg-white">
 
-    <div id="loader" class="fixed inset-0 z-[99999] bg-white flex items-center justify-center">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
-
     <div id="appCapsule" class="pt-0">
 
         <div class="max-w-[500px] mx-auto text-center mt-1">
