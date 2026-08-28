@@ -1,0 +1,159 @@
+@page {
+    size: A4;
+}
+
+body {
+    font-family: "Times New Roman", serif;
+    font-size: 14px;
+}
+
+/* ==========================
+   HEADER LAPORAN
+========================== */
+
+.header-laporan {
+    width: 100%;
+}
+
+.logo-perusahaan {
+    width: 20%;
+}
+
+h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+.alamat {
+    margin-top: 5px;
+    font-size: 12px;
+    font-style: italic;
+    font-family: Georgia, serif;
+}
+
+.garis-header {
+    border: 1px solid #000;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+/* ==========================
+   DATA KARYAWAN
+========================== */
+
+.tabeldatakaryawan {
+    margin-top: 20px;
+}
+
+.tabeldatakaryawan td {
+    padding: 4px;
+    font-size: 16px;
+}
+
+.foto-karyawan {
+    width: 120px;
+    vertical-align: top;
+}
+
+.foto-karyawan img {
+    width: 100px;
+    height: auto;
+}
+
+/* ==========================
+   TABEL PRESENSI
+========================== */
+
+.tabelpresensi {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabelpresensi th,
+.tabelpresensi td {
+    padding: 6px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* HEADER TABEL */
+
+.tabelpresensi th {
+    border: 1px solid #000;
+    padding: 8px;
+    background-color: #d9d9d9;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* ISI TABEL */
+
+.tabelpresensi td {
+    border: 1px solid #000;
+    padding: 5px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+
+
+/* FOTO ABSENSI */
+
+.foto {
+    width: 40px;
+    height: 36px;
+    object-fit: cover;
+}
+
+
+/* ==========================
+   TANDA TANGAN
+========================== */
+
+.ttd {
+    width: 100%;
+    margin-top: 40px;
+}
+
+.ttd td {
+    text-align: right;
+    padding-right: 40px;
+}
+
+.jarakttd {
+    height: 80px;
+}
+
+.terlambat {
+    color: red;
+    font-weight: bold;
+}
+
+/* .tepat {
+    color: green;
+    font-weight: bold;
+} */
+
+/* .belum-pulang {
+    color: orange;
+    font-weight: bold;
+} */
+
+/* ==========================
+   PRINT
+========================== */
+
+@media print {
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .sheet {
+        margin: 0;
+        box-shadow: none !important;
+    }
+}
