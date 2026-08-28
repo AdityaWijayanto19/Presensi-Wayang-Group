@@ -589,6 +589,113 @@
             .presencetitle { font-size: 14px; }
             .presencedetail span { font-size: 11px; }
         }
+
+        /* PRESENSI CARD — Redesigned (Izin/Lembur/WFH) */
+        .presensi-card {
+            background: #fff;
+            border: 1px solid #f0ece8;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(122,82,52,0.06), 0 4px 12px rgba(0,0,0,0.04);
+            padding: 14px 14px 12px;
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+        }
+        .presensi-card:hover {
+            box-shadow: 0 4px 12px rgba(122,82,52,0.10), 0 8px 24px rgba(0,0,0,0.06);
+            transform: translateY(-1px);
+        }
+        .presensi-card:active { transform: translateY(0); }
+        .presensi-icon-box {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            border: 1.5px solid;
+        }
+        .presensi-icon-box ion-icon { font-size: 22px; --ionicon-stroke-width: 28px; }
+        .icon-izin { background: #fff7ed; border-color: #ffedd5; color: #c0842a; }
+        .icon-sakit { background: #fff1f2; border-color: #ffe4e6; color: #e11d48; }
+        .icon-lembur { background: #f5f3ff; border-color: #ede9fe; color: #7c3aed; }
+        .icon-wfh { background: #f0f9ff; border-color: #e0f2fe; color: #0284c7; }
+        .presensi-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+            padding: 3px 9px; border-radius: 999px; border: 1px solid;
+            line-height: 1;
+        }
+        .badge-izin { background: #fff7ed; border-color: #fed7aa; color: #9a5a1a; }
+        .badge-sakit { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
+        .badge-lembur { background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9; }
+        .badge-wfh { background: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
+        .badge-uploaded {
+            background: #ecfdf5; border-color: #a7f3d0; color: #065f46;
+            font-size: 10px; font-weight: 700; padding: 2px 8px;
+        }
+        .file-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; line-height: 1;
+            border: 1.5px solid #e7e5e4;
+            background: #fff; color: #44403c;
+            cursor: pointer; transition: all 0.15s ease;
+            text-decoration: none !important;
+        }
+        .file-pill:hover {
+            border-color: #7a5234; color: #7a5234;
+            background: #fdf8f4; transform: translateY(-1px);
+        }
+        .file-pill:active { transform: translateY(0); }
+        .file-pill ion-icon { font-size: 15px; flex-shrink: 0; }
+        .presensi-divider { height: 1px; background: #f5f0eb; margin: 10px 0 10px; }
+        .btn-delete-card {
+            width: 32px; height: 32px; border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #fff1f2; border: 1.5px solid #ffe4e6; color: #e11d48;
+            transition: all 0.15s ease; cursor: pointer;
+        }
+        .btn-delete-card:hover { background: #e11d48; border-color: #e11d48; color: #fff; }
+        .btn-delete-card ion-icon { font-size: 15px; --ionicon-stroke-width: 32px; }
+        /* FILE PREVIEW MODAL */
+        .file-modal-backdrop {
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(20,12,6,0.55); backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .file-modal-backdrop.open { display: flex; }
+        .file-modal {
+            background: #fff; border-radius: 20px; width: 100%; max-width: 640px;
+            max-height: 85vh; display: flex; flex-direction: column;
+            overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn { from { opacity:0; transform: scale(0.96) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
+        .file-modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; border-bottom: 1px solid #f0ece8; flex-shrink: 0;
+        }
+        .file-modal-body { flex: 1; overflow: hidden; background: #fafaf9; display: flex; flex-direction: column; min-height: 320px; }
+        .file-modal-body iframe { width: 100%; height: 100%; min-height: 420px; border: 0; background: #fff; }
+        .file-modal-body img { width: 100%; height: auto; max-height: 60vh; object-fit: contain; background: #fff; }
+        .file-modal-footer {
+            display: flex; gap: 8px; padding: 14px 20px; border-top: 1px solid #f0ece8;
+            flex-wrap: wrap; justify-content: flex-end; background: #fff;
+        }
+        .file-modal-footer .btn-modal {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+            border: 1.5px solid; cursor: pointer; text-decoration: none !important; line-height: 1;
+        }
+        .btn-modal-secondary { background: #fff; border-color: #e7e5e4; color: #44403c; }
+        .btn-modal-secondary:hover { border-color: #a8a29e; }
+        .btn-modal-primary { background: #7a5234; border-color: #7a5234; color: #fff; }
+        .btn-modal-primary:hover { background: #5e3e27; border-color: #5e3e27; }
+        .btn-modal-danger { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
+        .btn-modal-close {
+            width: 36px; height: 36px; border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #f5f5f4; border: 1px solid #e7e5e4; color: #57534e; cursor: pointer;
+        }
+        .btn-modal-close:hover { background: #e7e5e4; }
     </style>
 
 </head>
@@ -608,8 +715,184 @@
     {{-- Bottom Navigation --}}
     @include('layouts.bottomNav')
 
+    {{-- File Preview Modal (global) --}}
+    <div id="filePreviewBackdrop" class="file-modal-backdrop" aria-hidden="true">
+        <div class="file-modal" role="dialog" aria-modal="true">
+            <div class="file-modal-header">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div id="fileModalIcon" class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#fdf8f4] border border-[#f0ece8] text-coklat shrink-0">
+                        <ion-icon name="document-text-outline" style="font-size:18px;"></ion-icon>
+                    </div>
+                    <div class="min-w-0">
+                        <div id="fileModalTitle" class="text-[14px] font-bold text-[#1a1a1a] leading-tight truncate">Preview Dokumen</div>
+                        <div id="fileModalSubtitle" class="text-[11px] text-[#a8a29e] truncate">Memuat...</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-modal-close shrink-0" id="fileModalClose" aria-label="Tutup">
+                    <ion-icon name="close-outline" style="font-size:20px;"></ion-icon>
+                </button>
+            </div>
+            <div class="file-modal-body" id="fileModalBody">
+                <div id="fileModalLoader" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+                    <ion-icon name="hourglass-outline" class="text-[36px] text-[#d6c7b8] animate-pulse"></ion-icon>
+                    <p class="text-[13px] text-[#78716c]">Memuat preview...</p>
+                </div>
+            </div>
+            <div class="file-modal-footer">
+                <a id="fileModalDownload" href="#" download class="btn-modal btn-modal-secondary" rel="noopener">
+                    <ion-icon name="download-outline"></ion-icon> Download
+                </a>
+                <a id="fileModalOpenTab" href="#" target="_blank" rel="noopener" class="btn-modal btn-modal-primary">
+                    <ion-icon name="open-outline"></ion-icon> Buka di Tab Baru
+                </a>
+            </div>
+        </div>
+    </div>
+
     {{-- Script --}}
     @include('layouts.script')
+
+    <script>
+        (function() {
+            // prevent double binding on soft navigation
+            if (window.__filePreviewBound) return;
+            window.__filePreviewBound = true;
+
+            const backdrop = document.getElementById('filePreviewBackdrop');
+            const body = document.getElementById('fileModalBody');
+            const loader = document.getElementById('fileModalLoader');
+            const titleEl = document.getElementById('fileModalTitle');
+            const subtitleEl = document.getElementById('fileModalSubtitle');
+            const downloadEl = document.getElementById('fileModalDownload');
+            const openTabEl = document.getElementById('fileModalOpenTab');
+            const closeBtn = document.getElementById('fileModalClose');
+
+            function openPreview(url, filename, label) {
+                const ext = (filename.split('.').pop() || '').toLowerCase();
+                const isImage = ['jpg','jpeg','png','webp'].includes(ext);
+                const isPdf = ext === 'pdf';
+                const isDoc = ['doc','docx'].includes(ext);
+
+                titleEl.textContent = label || filename;
+                subtitleEl.textContent = filename;
+                downloadEl.href = url;
+
+                // For doc/docx: hide "Buka di Tab Baru" (browser will download anyway), show only Download with clear message
+                if (isDoc) {
+                    openTabEl.style.display = 'none';
+                    downloadEl.style.display = '';
+                    downloadEl.innerHTML = '<ion-icon name="download-outline"></ion-icon> Download';
+                } else {
+                    openTabEl.href = url;
+                    openTabEl.style.display = '';
+                    downloadEl.style.display = '';
+                    downloadEl.innerHTML = '<ion-icon name="download-outline"></ion-icon> Download';
+                    openTabEl.innerHTML = '<ion-icon name="open-outline"></ion-icon> Buka di Tab Baru';
+                }
+
+                backdrop.classList.add('open');
+                document.body.style.overflow = 'hidden';
+
+                if (isImage) {
+                    body.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = filename;
+                    img.onerror = () => { showDocFallback(ext, filename, label); };
+                    body.appendChild(img);
+                    return;
+                }
+                if (isPdf) {
+                    body.innerHTML = '';
+                    const iframe = document.createElement('iframe');
+                    iframe.src = url;
+                    iframe.title = filename;
+                    iframe.loading = 'lazy';
+                    body.appendChild(iframe);
+                    return;
+                }
+                // doc/docx and others: show clean file-card fallback (only PDF & images get iframe preview)
+                showDocFallback(ext, filename, label);
+            }
+
+            function showDocFallback(ext, filename, label) {
+                const isDoc = ['doc','docx'].includes(ext);
+                const title = isDoc ? 'File Word — Preview terbatas' : 'Preview tidak tersedia untuk .' + ext;
+                const desc = isDoc
+                    ? 'Dokumen <b>' + filename + '</b> berformat <b>.' + ext + '</b> tidak bisa preview langsung di browser. Silakan <b>Download</b> untuk buka di Microsoft Word. <br><br><span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#7a5234] bg-[#fdf8f4] border border-[#f0ece8] rounded-full px-2.5 py-1"><ion-icon name="bulb-outline"></ion-icon> Tips: upload sebagai <b>PDF</b> agar bisa preview langsung di sini.</span>'
+                    : 'File .' + ext + ' tidak bisa di-preview langsung. Silakan buka di tab baru atau download.';
+                body.innerHTML = '<div class="flex flex-col items-center gap-4 p-6 text-center">'
+                    + '<div class="w-20 h-20 rounded-2xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center text-coklat shadow-sm"><ion-icon name="document-text-outline" style="font-size:36px;"></ion-icon></div>'
+                    + '<div class="w-full max-w-[32ch]">'
+                    + '<p class="text-[14px] font-bold text-[#1c1917]">' + title + '</p>'
+                    + '<p class="mt-1.5 text-[12px] leading-relaxed text-[#57534e]">' + desc + '</p>'
+                    + '<div class="mt-3 inline-flex items-center gap-2 bg-white border border-[#f0ece8] rounded-full px-3 py-1.5 shadow-sm">'
+                    + '<ion-icon name="document-outline" class="text-[#a8a29e]"></ion-icon>'
+                    + '<span class="text-[11px] font-mono font-semibold text-[#44403c] truncate max-w-[18ch]">' + filename + '</span>'
+                    + '<span class="inline-flex items-center justify-center min-w-[28px] h-5 px-1.5 rounded-full bg-[#1c1917] text-white text-[10px] font-bold uppercase">' + ext + '</span>'
+                    + '</div>'
+                    + '</div></div>';
+            }
+
+            function showFallback(ext, url, customMsg) {
+                // legacy wrapper for image error
+                showDocFallback(ext, url.split('/').pop() || ext, '');
+            }
+
+            function closePreview() {
+                backdrop.classList.remove('open');
+                document.body.style.overflow = '';
+                setTimeout(() => { body.innerHTML = '<div id="fileModalLoader" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center"><ion-icon name="hourglass-outline" class="text-[36px] text-[#d6c7b8] animate-pulse"></ion-icon><p class="text-[13px] text-[#78716c]">Memuat preview...</p></div>'; }, 200);
+            }
+
+            document.addEventListener('click', function(e) {
+                const pill = e.target.closest('.js-preview');
+                if (pill) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // stopImmediate to prevent double firing if script bound twice
+                    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                    openPreview(pill.dataset.url, pill.dataset.filename || '', pill.dataset.label || '');
+                }
+            }, true);
+            // Direct open in new tab — explicit handler to avoid popup blocker / href timing issues
+            openTabEl.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                if (url && url !== '#') {
+                    const win = window.open(url, '_blank', 'noopener');
+                    // fallback if popup blocked
+                    if (!win) { window.location.href = url; }
+                }
+            });
+            // Download — force download via temporary anchor to ensure it works even when server sends inline
+            downloadEl.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                const filename = subtitleEl.textContent || (this.getAttribute('download') || '');
+                if (!url || url === '#') return;
+                // Create temporary link with download attribute — works for same-origin
+                const a = document.createElement('a');
+                a.href = url;
+                if (filename && filename !== '#') a.download = filename;
+                else a.setAttribute('download', '');
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                // Fallback: if browser ignored download (e.g., popup blocker), open in new tab
+                setTimeout(() => {
+                    // if still on same page and no download started, try direct navigation
+                    // no-op, download should have started
+                }, 200);
+            });
+
+            closeBtn.addEventListener('click', closePreview);
+            backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closePreview(); });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && backdrop.classList.contains('open')) closePreview(); });
+            window.openFilePreview = openPreview;
+            window.closeFilePreview = closePreview;
+        })();
+    </script>
 
     {{-- Service Worker --}}
     <script>

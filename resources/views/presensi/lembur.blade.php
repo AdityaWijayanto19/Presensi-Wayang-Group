@@ -1,98 +1,135 @@
 @extends('layouts.presensi')
 
 @section('header')
-
     <div class="appHeader bg-coklat text-light">
         <div class="pageTitle">Data Lembur</div>
         <div class="right"></div>
     </div>
-
 @endsection
 
 @section('content')
+    @php
+        $messagesuccess = Session::get('success');
+        $messageerror = Session::get('error');
+        $weekdayMap = ['Sunday'=>'Minggu','Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu','Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu'];
+    @endphp
 
     {{-- Alert --}}
     <div class="flex mt-[70px]">
-        <div class="w-full px-2">
-            @php
-                $messagesuccess = Session::get('success');
-                $messageerror = Session::get('error');
-            @endphp
-
-            @if (Session::get('success'))
-                <div class="bg-[#34c759] text-white border border-[#34c759] text-[13px] rounded-md py-1.5 px-4" id="alert-success">
-                    {{ $messagesuccess }}
+        <div class="w-full px-3">
+            @if ($messagesuccess)
+                <div class="flex items-center gap-2.5 bg-[#ecfdf5] border border-[#a7f3d0] text-[#065f46] text-[13px] font-medium rounded-xl py-2.5 px-3.5" id="alert-success">
+                    <ion-icon name="checkmark-circle" class="text-[18px] text-[#10b981] shrink-0"></ion-icon>
+                    <span class="flex-1 leading-tight">{{ $messagesuccess }}</span>
+                    <button onclick="this.parentElement.style.display='none'" class="shrink-0 w-6 h-6 rounded-full bg-white border border-[#a7f3d0] flex items-center justify-center text-[#065f46]"><ion-icon name="close-outline" style="font-size:14px;"></ion-icon></button>
                 </div>
             @endif
-
-            @if (Session::get('error'))
-                <div class="bg-[#ec4433] text-white border border-[#ec4433] text-[13px] rounded-md py-1.5 px-4">
-                    {{ $messageerror }}
+            @if ($messageerror)
+                <div class="flex items-center gap-2.5 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] text-[13px] font-medium rounded-xl py-2.5 px-3.5">
+                    <ion-icon name="alert-circle" class="text-[18px] text-[#ef4444] shrink-0"></ion-icon>
+                    <span class="flex-1 leading-tight">{{ $messageerror }}</span>
                 </div>
             @endif
         </div>
     </div>
 
-    {{-- Data Lembur --}}
-    <div class="flex">
-        <div class="w-full px-2">
-            @forelse ($datalembur as $d)
-                <ul class="listview image-listview">
-                    <li>
-                        <div class="item">
-                            <div class="in">
-                                <div class="flex items-center gap-2.5 w-full">
-                                    <ion-icon name="timer-outline" class="text-yellow-500 text-[22px]"></ion-icon>
-                                    <div class="flex-1 min-w-0">
-                                        <b>
-                                            {{ date('d-m-Y', strtotime($d->tgl_lembur)) }}
-                                            ({{ $d->durasi }})
-                                        </b>
-                                        <br>
-                                        <small>
-                                            <a href="/presensi/showfilelembur/{{ $d->file_form }}" target="_blank" class="text-blue-600 no-underline">
-                                                Form Lembur
-                                            </a>
-                                        </small>
-                                        <br>
-                                        <small>
-                                            <a href="/presensi/showfilelembur/{{ $d->file_laporan }}" target="_blank" class="text-blue-600 no-underline">
-                                                Laporan Lembur
-                                            </a>
-                                        </small>
-                                    </div>
-                                </div>
+    @if ($datalembur->count() > 0)
+        <div class="flex mt-3">
+            <div class="w-full px-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-[12px] font-semibold tracking-wide text-[#a8a29e] uppercase">
+                        <span class="inline-flex items-center gap-1.5"><ion-icon name="time-outline" class="text-[13px]"></ion-icon> {{ $datalembur->count() }} Data</span>
+                        <span class="mx-1.5 text-[#e7e5e4]">•</span>
+                        <span class="text-[#78716c]">Durasi & laporan terlampir</span>
+                    </p>
+                    <span class="text-[11px] font-medium text-[#78716c] bg-white border border-[#f0ece8] rounded-full px-2.5 py-1">{{ date('M Y') }}</span>
+                </div>
+            </div>
+        </div>
+    @endif
 
-                                <div class="flex flex-col gap-1 items-end">
-                                    <form action="/presensi/deletelembur/{{ $d->id }}" method="POST" class="form-delete">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white border-0 p-0">
-                                            <ion-icon name="trash-outline" class="text-xs"></ion-icon>
-                                        </button>
-                                    </form>
-                                    <span class="inline-flex items-center justify-center rounded-full bg-green-500 text-white text-[9px] px-2 py-0.5">
-                                        Uploaded
-                                    </span>
-                                </div>
+    {{-- Data Lembur — Redesigned --}}
+    <div class="flex mt-3">
+        <div class="w-full px-3">
+            @forelse ($datalembur as $d)
+                @php
+                    $ts = strtotime($d->tgl_lembur);
+                    $weekday = $weekdayMap[date('l', $ts)] ?? date('l', $ts);
+                    $displayDate = date('d M Y', $ts);
+                    $extForm = strtolower(pathinfo($d->file_form, PATHINFO_EXTENSION));
+                    $extLap = strtolower(pathinfo($d->file_laporan, PATHINFO_EXTENSION));
+                @endphp
+                <div class="presensi-card mb-2.5">
+                    <div class="flex items-start gap-3">
+                        <div class="presensi-icon-box icon-lembur">
+                            <ion-icon name="timer-outline"></ion-icon>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-[14.5px] font-bold text-[#1c1917] tracking-tight leading-none">{{ $displayDate }}</span>
+                                <span class="presensi-badge badge-lembur">
+                                    <ion-icon name="hourglass-outline" style="font-size:11px;"></ion-icon> {{ $d->durasi }}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <ion-icon name="calendar-outline" class="text-[12px] text-[#a8a29e]"></ion-icon>
+                                <span class="text-[12px] font-medium text-[#78716c]">{{ $weekday }}</span>
+                                <span class="w-1 h-1 rounded-full bg-[#e7e5e4]"></span>
+                                <span class="text-[11px] text-[#a8a29e]">Lembur tercatat</span>
                             </div>
                         </div>
-                    </li>
-                </ul>
+                        <form action="/presensi/deletelembur/{{ $d->id }}" method="POST" class="form-delete shrink-0">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-delete-card" aria-label="Hapus">
+                                <ion-icon name="trash-outline"></ion-icon>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="presensi-divider"></div>
+
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button type="button"
+                                class="file-pill js-preview"
+                                data-url="/presensi/showfilelembur/{{ $d->file_form }}"
+                                data-filename="{{ $d->file_form }}"
+                                data-label="Form Lembur — {{ $displayDate }} • {{ $d->durasi }}">
+                                <ion-icon name="document-outline"></ion-icon> Form
+                                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#f5f3ff] border border-[#ddd6fe] text-[9px] font-bold text-[#6d28d9] uppercase">{{ $extForm }}</span>
+                            </button>
+                            <button type="button"
+                                class="file-pill js-preview"
+                                data-url="/presensi/showfilelembur/{{ $d->file_laporan }}"
+                                data-filename="{{ $d->file_laporan }}"
+                                data-label="Laporan Lembur — {{ $displayDate }} • {{ $d->durasi }}">
+                                <ion-icon name="clipboard-outline"></ion-icon> Laporan
+                                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#f5f3ff] border border-[#ddd6fe] text-[9px] font-bold text-[#6d28d9] uppercase">{{ $extLap }}</span>
+                            </button>
+                        </div>
+                        <span class="presensi-badge badge-uploaded">
+                            <ion-icon name="checkmark-circle" style="font-size:12px;"></ion-icon> Uploaded
+                        </span>
+                    </div>
+                </div>
             @empty
-                <div class="mt-[120px] text-center text-gray-400">
-                    <ion-icon name="document-text-outline" class="text-[70px] text-gray-300"></ion-icon>
-                    <h4 class="mt-2 text-coklat">Belum Ada Data Lembur</h4>
-                    <small>Data lembur akan muncul di sini</small>
+                <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm p-8 mt-6 text-center">
+                    <div class="w-20 h-20 rounded-2xl bg-[#f5f3ff] border border-[#ede9fe] flex items-center justify-center mx-auto text-[#7c3aed]">
+                        <ion-icon name="timer-outline" class="text-[40px]"></ion-icon>
+                    </div>
+                    <h4 class="mt-4 text-[16px] font-bold text-[#1c1917]">Belum Ada Data Lembur</h4>
+                    <p class="mt-1.5 text-[13px] leading-relaxed text-[#78716c] max-w-[26ch] mx-auto">Riwayat lembur kamu akan tampil di sini lengkap dengan durasi dan dokumen.</p>
+                    <a href="/presensi/buatlembur" class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full bg-coklat text-white text-[13px] font-semibold shadow-sm hover:bg-coklat-dark transition">
+                        <ion-icon name="add-circle-outline" style="font-size:16px;"></ion-icon> Ajukan Lembur
+                    </a>
                 </div>
             @endforelse
         </div>
     </div>
 
-    {{-- Floating Action Button --}}
-    <div class="fab-button bottom-right" style="bottom: 80px; right: 35px;">
-        <span>Tambah Data</span>
-        <a href="/presensi/buatlembur" class="fab bg-coklat text-white">
+    <div class="fab-button bottom-right" style="bottom: 78px; right: 16px;">
+        <a href="/presensi/buatlembur" class="fab bg-coklat text-white shadow-lg" aria-label="Tambah Data">
             <ion-icon name="add-outline"></ion-icon>
         </a>
     </div>
@@ -100,9 +137,8 @@
     <script>
         setTimeout(function () {
             let alert = document.getElementById('alert-success');
-            if (alert) { alert.style.display = 'none'; }
+            if (alert) { alert.style.opacity = '0'; alert.style.transition = 'opacity 0.3s'; setTimeout(() => alert.style.display = 'none', 300); }
         }, 3000);
-
         document.querySelectorAll('.form-delete').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -115,11 +151,8 @@
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'Ya, Hapus',
                     cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) { form.submit(); }
-                });
+                }).then((result) => { if (result.isConfirmed) { form.submit(); } });
             });
         });
     </script>
-
 @endsection
