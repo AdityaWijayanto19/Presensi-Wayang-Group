@@ -6,15 +6,9 @@
 <script src="{{ asset('assets/js/lib/bootstrap.min.js') }}"></script>
 
 {{-- Ionicons --}}
-<script
-    type="module"
-    src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js">
-</script>
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 
-<script
-    nomodule
-    src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js">
-</script>
+<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
 {{-- Owl Carousel --}}
 <script src="{{ asset('assets/js/plugins/owl-carousel/owl.carousel.min.js') }}"></script>
@@ -28,9 +22,9 @@
 {{-- SweetAlert2 --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{{-- Flatpickr --}}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Flatpickr JS & Indonesian Locale -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
 
 {{-- Base JS --}}
 <script src="{{ asset('assets/js/base.js') }}"></script>

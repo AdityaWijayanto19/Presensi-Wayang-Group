@@ -42,7 +42,7 @@
                                                     </span>
                                                     <input type="text" class="form-control" id="tanggal" name="tanggal"
                                                         autocomplete="off" placeholder="Cari Tanggal WFH"
-                                                        value="{{ Request('tanggal') }}">
+                                                        value="{{ request('tanggal') }}">
                                                 </div>
                                             </div>
                                         </div>
@@ -151,10 +151,13 @@
 @push('myscript')
     <script>
         $(function() {
-            $('#tanggal').datepicker({
-                format: 'yyyy-mm-dd',
-                autoclose: true,
-                todayHighlight: true
+            flatpickr("#tanggal", {
+                locale: "id", 
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "j F Y",
+                allowInput: true,
+                disableMobile: "true"
             });
             $('input[name="tanggal"]').change(function() {
                 $(this).closest('form').submit();
@@ -349,38 +352,19 @@
                 }
 
                 function pollAdminData() {
-                    fetch('/api/realtime/admin', {
+                    // Check if data changed → AJAX table update
+                    fetch('/api/realtime/admin/wfh-check?last_check=' + encodeURIComponent(
+                            lastCheck), {
                             credentials: 'same-origin'
                         })
                         .then(function(r) {
                             return r.json();
                         })
-                        .then(function(data) {
-                            // Update sidebar badge
-                            var badgeEl = document.getElementById('adminWfhBadge');
-                            var total = (data.pending_wfh || 0) + (data.pending_laporan || 0);
-                            if (badgeEl) {
-                                if (total > 0) {
-                                    badgeEl.textContent = total;
-                                    badgeEl.style.display = 'inline-flex';
-                                } else {
-                                    badgeEl.style.display = 'none';
-                                }
+                        .then(function(check) {
+                            if (check.updated_data || check.new_data) {
+                                lastCheck = new Date().toISOString();
+                                fetchTableData();
                             }
-                            // Check if data changed → AJAX table update
-                            fetch('/api/realtime/admin/wfh-check?last_check=' + encodeURIComponent(
-                                    lastCheck), {
-                                    credentials: 'same-origin'
-                                })
-                                .then(function(r) {
-                                    return r.json();
-                                })
-                                .then(function(check) {
-                                    if (check.updated_data || check.new_data) {
-                                        lastCheck = new Date().toISOString();
-                                        fetchTableData();
-                                    }
-                                }).catch(function() {});
                         }).catch(function() {});
                 }
 

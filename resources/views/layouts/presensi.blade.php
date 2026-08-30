@@ -36,6 +36,9 @@
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         crossorigin="">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+
     {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -696,6 +699,76 @@
             background: #f5f5f4; border: 1px solid #e7e5e4; color: #57534e; cursor: pointer;
         }
         .btn-modal-close:hover { background: #e7e5e4; }
+
+        .flatpickr-calendar {
+            background: #ffffff !important;
+            border: 1px solid #e6e8e9 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            font-family: inherit !important;
+            padding: 8px !important;
+            width: 315px !important;
+        }
+
+        /* Arrow indicator atas */
+        .flatpickr-calendar.arrowTop:before,
+        .flatpickr-calendar.arrowTop:after {
+            border-bottom-color: #ffffff !important;
+        }
+
+        /* Header Bulan & Tahun */
+        .flatpickr-current-month {
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            padding-top: 4px !important;
+        }
+
+        /* Nama Hari (Sen, Sel, Rab...) */
+        span.flatpickr-weekday {
+            color: #626976 !important;
+            font-weight: 600 !important;
+            font-size: 12px !important;
+        }
+
+        /* Angka Tanggal */
+        .flatpickr-day {
+            border-radius: 6px !important;
+            color: #1e293b !important;
+            font-weight: 500 !important;
+        }
+
+        /* Hover Tanggal */
+        .flatpickr-day:hover,
+        .flatpickr-day:focus {
+            background: #f1f5f9 !important;
+            border-color: transparent !important;
+        }
+
+        /* Tanggal yang Dipilih (Selected) */
+        .flatpickr-day.today.selected,
+        .flatpickr-day.today.selected:hover,
+        .flatpickr-day.today.selected:focus {
+            background: #206bc4 !important;
+            border-color: #206bc4 !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+
+        /* Hari Ini (Today) */
+        .flatpickr-day.today {
+            border-color: #206bc4 !important;
+            color: #206bc4 !important;
+        }
+
+        .flatpickr-day.today:hover {
+            background: #206bc4 !important;
+            color: #ffffff !important;
+        }
+
+        /* Fix Input Form Alignment di Tabler */
+        .flatpickr-input[readonly] {
+            background-color: #ffffff !important;
+        }
     </style>
 
 </head>

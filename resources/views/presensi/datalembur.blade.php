@@ -1,7 +1,6 @@
 @extends('layouts.admin.tabler')
 
 @section('content')
-
     {{-- ================================================== --}}
     {{-- Page Header --}}
     {{-- ================================================== --}}
@@ -64,19 +63,15 @@
 
                                                     <span class="input-icon-addon">
 
-                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                            width="24"
-                                                            height="24"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            stroke-width="2"
-                                                            stroke-linecap="round"
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                            height="24" viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                                             stroke-linejoin="round"
                                                             class="icon icon-tabler icon-tabler-calendar-time">
 
                                                             <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                            <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+                                                            <path
+                                                                d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
                                                             <path d="M14 18a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
                                                             <path d="M15 3v4" />
                                                             <path d="M7 3v4" />
@@ -87,12 +82,8 @@
 
                                                     </span>
 
-                                                    <input type="text"
-                                                        class="form-control"
-                                                        id="tanggal"
-                                                        name="tanggal"
-                                                        autocomplete="off"
-                                                        placeholder="Cari Tanggal Lembur"
+                                                    <input type="text" class="form-control" id="tanggal" name="tanggal"
+                                                        autocomplete="off" placeholder="Cari Tanggal Lembur"
                                                         value="{{ Request('tanggal') ?? date('Y-m-d') }}">
 
                                                 </div>
@@ -108,34 +99,27 @@
 
                                             <div class="col-4">
 
-                                                <input type="text"
-                                                    name="nama_karyawan"
-                                                    class="form-control"
-                                                    placeholder="Cari Nama Karyawan"
-                                                    value="{{ Request('nama_karyawan') }}"
+                                                <input type="text" name="nama_karyawan" class="form-control"
+                                                    placeholder="Cari Nama Karyawan" value="{{ Request('nama_karyawan') }}"
                                                     autocomplete="off">
 
                                             </div>
 
                                             <div class="col-3">
 
-                                                <select name="unit"
-                                                    class="form-select">
+                                                <select name="unit" class="form-select">
 
                                                     <option value="">
                                                         Semua Unit
                                                     </option>
 
                                                     @foreach ($unitperusahaan as $u)
-
-                                                        <option
-                                                            {{ Request('unit') == $u->unit ? 'selected' : '' }}
+                                                        <option {{ Request('unit') == $u->unit ? 'selected' : '' }}
                                                             value="{{ $u->unit }}">
 
                                                             {{ $u->perusahaan }}
 
                                                         </option>
-
                                                     @endforeach
 
                                                 </select>
@@ -144,8 +128,7 @@
 
                                             <div class="col-5">
 
-                                                <button type="submit"
-                                                    class="btn btn-primary w-100">
+                                                <button type="submit" class="btn btn-primary w-100">
 
                                                     Cari Data
 
@@ -188,8 +171,6 @@
                                 <tbody>
 
                                     @forelse ($datalembur as $d)
-                                    
-
                                         <tr>
 
                                             <td>
@@ -212,8 +193,7 @@
 
                                             <td>
 
-                                                <a href="/presensi/showfilelembur/{{ $d->file_form }}"
-                                                    target="_blank"
+                                                <a href="/presensi/showfilelembur/{{ $d->file_form }}" target="_blank"
                                                     class="btn btn-sm btn-primary">
 
                                                     Lihat Form
@@ -224,8 +204,7 @@
 
                                             <td>
 
-                                                <a href="/presensi/showfilelembur/{{ $d->file_laporan }}"
-                                                    target="_blank"
+                                                <a href="/presensi/showfilelembur/{{ $d->file_laporan }}" target="_blank"
                                                     class="btn btn-sm btn-success">
 
                                                     Lihat Laporan
@@ -237,21 +216,15 @@
                                             <td>
 
                                                 <form action="/presensi/datalembur/{{ $d->id }}/delete"
-                                                    method="POST"
-                                                    class="d-inline">
+                                                    method="POST" class="d-inline">
 
                                                     @csrf
 
-                                                    <button type="submit"
-                                                        class="btn btn-sm btn-danger delete-confirm">
+                                                    <button type="submit" class="btn btn-sm btn-danger delete-confirm">
 
-                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                            width="16"
-                                                            height="16"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            stroke-width="2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                            height="16" viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" stroke-width="2">
 
                                                             <path d="M4 7h16" />
                                                             <path d="M10 11v6" />
@@ -273,15 +246,13 @@
 
                                         <tr>
 
-                                            <td colspan="10"
-                                                class="text-center text-muted">
+                                            <td colspan="10" class="text-center text-muted">
 
                                                 Data lembur tidak ditemukan
 
                                             </td>
 
                                         </tr>
-
                                     @endforelse
 
                                 </tbody>
@@ -308,78 +279,63 @@
         </div>
 
     </div>
-
 @endsection
 
 @push('myscript')
+    <script>
+        $(function() {
 
-<script>
+            flatpickr("#tanggal", {
+                locale: "id",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "j F Y",
+                allowInput: true,
+                disableMobile: "true"
+            });
 
-    $(function () {
+            $('input[name="tanggal"]').change(function() {
 
-        // ==================================================
-        // Datepicker
-        // ==================================================
-        $('#tanggal').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true
-        });
+                $(this).closest('form').submit();
 
-    });
+            });
 
-    $(function () {
+            $('select[name="unit"]').change(function() {
 
-        // ==================================================
-        // Auto Submit Filter Tanggal
-        // ==================================================
-        $('input[name="tanggal"]').change(function () {
+                $(this).closest('form').submit();
 
-            $(this).closest('form').submit();
-
-        });
-
-        // ==================================================
-        // Auto Submit Filter Unit
-        // ==================================================
-        $('select[name="unit"]').change(function () {
-
-            $(this).closest('form').submit();
+            });
 
         });
 
-    });
+        // ==================================================
+        // Konfirmasi Hapus
+        // ==================================================
+        $(".delete-confirm").click(function(e) {
 
-    // ==================================================
-    // Konfirmasi Hapus
-    // ==================================================
-    $(".delete-confirm").click(function (e) {
+            var form = $(this).closest("form");
 
-        var form = $(this).closest("form");
+            e.preventDefault();
 
-        e.preventDefault();
+            Swal.fire({
 
-        Swal.fire({
+                title: 'Yakin data ini akan dihapus?',
+                text: "Data yang sudah dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Hapus Data',
+                backdrop: false
 
-            title: 'Yakin data ini akan dihapus?',
-            text: "Data yang sudah dihapus tidak bisa dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Hapus Data',
-            backdrop: false
+            }).then((result) => {
 
-        }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
 
-            if (result.isConfirmed) {
-                form.submit();
-            }
+            });
 
         });
-
-    });
-
-</script>
-
+    </script>
 @endpush

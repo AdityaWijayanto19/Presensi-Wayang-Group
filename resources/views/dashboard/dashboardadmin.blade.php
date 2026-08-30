@@ -462,28 +462,3 @@
 </div>
 
 @endsection
-
-@push('myscript')
-<script>
-(function(){
-    function pollAdminDashboard(){
-        fetch('/api/realtime/admin', { credentials: 'same-origin' })
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-                var badgeEl = document.getElementById('adminWfhBadge');
-                var total = (data.pending_wfh || 0) + (data.pending_laporan || 0);
-                if(badgeEl){
-                    if(total > 0){
-                        badgeEl.textContent = total;
-                        badgeEl.style.display = 'inline-flex';
-                    } else {
-                        badgeEl.style.display = 'none';
-                    }
-                }
-            }).catch(function(){});
-    }
-    pollAdminDashboard();
-    setInterval(pollAdminDashboard, 5000);
-})();
-</script>
-@endpush

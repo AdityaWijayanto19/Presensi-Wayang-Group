@@ -260,14 +260,14 @@
 
     $(function () {
 
-        // ==================================================
-        // Datepicker
-        // ==================================================
-        $('#tanggal').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true
-        });
+         flatpickr("#tanggal", {
+                locale: "id",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "j F Y",
+                allowInput: true,
+                disableMobile: "true"
+            });
 
         // ==================================================
         // Load Data Presensi

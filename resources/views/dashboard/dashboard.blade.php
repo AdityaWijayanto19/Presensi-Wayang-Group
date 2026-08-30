@@ -310,86 +310,88 @@
             @endif
         </div>
 
-        @if (isset($wfhSaya) && $wfhSaya->count() > 0)
-            <div class="mt-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2">
-                        <span
-                            class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><ion-icon
-                                name="home-outline"></ion-icon></span>
-                        Perlu Tindakan
-                    </h3>
-                    <a href="/presensi/wfh" class="text-[11px] font-semibold text-sky-700">Lihat Semua</a>
-                </div>
-                @foreach ($wfhSaya as $w)
-                    @php
-                        $badge = match ($w->status) {
-                            'pending_atasan' => 'bg-amber-100 text-amber-700 border-amber-200',
-                            'pending_admin' => 'bg-amber-100 text-amber-700 border-amber-200',
-                            'approved' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                            'rejected' => 'bg-rose-100 text-rose-700 border-rose-200',
-                            'unpaid' => 'bg-gray-100 text-gray-700 border-gray-200',
-                            default => 'bg-gray-100 text-gray-700 border-gray-200',
-                        };
-                        $label = match ($w->status) {
-                            'pending_atasan' => 'Menunggu Persetujuan',
-                            'pending_admin' => 'Menunggu Persetujuan',
-                            'approved' => 'Disetujui',
-                            'rejected' => 'Ditolak',
-                            'unpaid' => 'Unpaid',
-                            default => $w->status,
-                        };
-                        $lStatus = $w->laporan_status ?? null;
-                    @endphp
-                    <div class="card mb-2">
-                        <div class="card-body p-3 flex items-center justify-between">
-                            <div class="flex-1 min-w-0">
-                                <div class="text-[13px] font-bold text-[#1c1917]">
-                                    {{ date('d M Y', strtotime($w->tgl_wfh)) }} <span
-                                        class="ml-1 inline-flex items-center rounded-full border text-[10px] px-2 py-0.5 {{ $badge }}">{{ $label }}</span>
+        <div id="perluTindakanSection">
+            @if (isset($wfhSaya) && $wfhSaya->count() > 0)
+                <div class="mt-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2">
+                            <span
+                                class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><ion-icon
+                                    name="home-outline"></ion-icon></span>
+                            Perlu Tindakan
+                        </h3>
+                        <a href="/presensi/wfh" class="text-[11px] font-semibold text-sky-700">Lihat Semua</a>
+                    </div>
+                    @foreach ($wfhSaya as $w)
+                        @php
+                            $badge = match ($w->status) {
+                                'pending_atasan' => 'bg-amber-100 text-amber-700 border-amber-200',
+                                'pending_admin' => 'bg-amber-100 text-amber-700 border-amber-200',
+                                'approved' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                                'rejected' => 'bg-rose-100 text-rose-700 border-rose-200',
+                                'unpaid' => 'bg-gray-100 text-gray-700 border-gray-200',
+                                default => 'bg-gray-100 text-gray-700 border-gray-200',
+                            };
+                            $label = match ($w->status) {
+                                'pending_atasan' => 'Menunggu Persetujuan',
+                                'pending_admin' => 'Menunggu Persetujuan',
+                                'approved' => 'Disetujui',
+                                'rejected' => 'Ditolak',
+                                'unpaid' => 'Unpaid',
+                                default => $w->status,
+                            };
+                            $lStatus = $w->laporan_status ?? null;
+                        @endphp
+                        <div class="card mb-2">
+                            <div class="card-body p-3 flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[13px] font-bold text-[#1c1917]">
+                                        {{ date('d M Y', strtotime($w->tgl_wfh)) }} <span
+                                            class="ml-1 inline-flex items-center rounded-full border text-[10px] px-2 py-0.5 {{ $badge }}">{{ $label }}</span>
+                                    </div>
+                                    @if (!empty($w->keterangan))
+                                        <div class="text-[11px] text-[#78716c] mt-0.5 italic">
+                                            {{ Str::limit($w->keterangan, 50) }}</div>
+                                    @endif
+                                    <div class="text-[11px] text-[#78716c] mt-0.5">
+                                        {{ Str::limit($w->deskripsi_pekerjaan, 50) }}</div>
+                                    @if ($lStatus)
+                                        @php
+                                            $lBadge = match ($lStatus) {
+                                                'pending_atasan' => 'bg-amber-100 text-amber-700',
+                                                'pending_admin' => 'bg-blue-100 text-blue-700',
+                                                'approved' => 'bg-emerald-100 text-emerald-700',
+                                                'rejected' => 'bg-rose-100 text-rose-700',
+                                                default => 'bg-gray-100 text-gray-700',
+                                            };
+                                            $lLabel = match ($lStatus) {
+                                                'pending_atasan' => 'Laporan: Menunggu Atasan',
+                                                'pending_admin' => 'Laporan: Menunggu Admin',
+                                                'approved' => 'Laporan: Disetujui',
+                                                'rejected' => 'Laporan: Ditolak',
+                                                default => 'Laporan: ' . $lStatus,
+                                            };
+                                        @endphp
+                                        <span
+                                            class="ml-1 inline-flex items-center rounded-full border text-[10px] px-2 py-0.5 {{ $lBadge }}">{{ $lLabel }}</span>
+                                    @endif
                                 </div>
-                                @if (!empty($w->keterangan))
-                                    <div class="text-[11px] text-[#78716c] mt-0.5 italic">
-                                        {{ Str::limit($w->keterangan, 50) }}</div>
-                                @endif
-                                <div class="text-[11px] text-[#78716c] mt-0.5">
-                                    {{ Str::limit($w->deskripsi_pekerjaan, 50) }}</div>
-                                @if ($lStatus)
-                                    @php
-                                        $lBadge = match ($lStatus) {
-                                            'pending_atasan' => 'bg-amber-100 text-amber-700',
-                                            'pending_admin' => 'bg-blue-100 text-blue-700',
-                                            'approved' => 'bg-emerald-100 text-emerald-700',
-                                            'rejected' => 'bg-rose-100 text-rose-700',
-                                            default => 'bg-gray-100 text-gray-700',
-                                        };
-                                        $lLabel = match ($lStatus) {
-                                            'pending_atasan' => 'Laporan: Menunggu Atasan',
-                                            'pending_admin' => 'Laporan: Menunggu Admin',
-                                            'approved' => 'Laporan: Disetujui',
-                                            'rejected' => 'Laporan: Ditolak',
-                                            default => 'Laporan: ' . $lStatus,
-                                        };
-                                    @endphp
-                                    <span
-                                        class="ml-1 inline-flex items-center rounded-full border text-[10px] px-2 py-0.5 {{ $lBadge }}">{{ $lLabel }}</span>
-                                @endif
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0 ml-2">
-                                @if ($w->status === 'approved' && empty($w->laporan_deskripsi))
-                                    <a href="/presensi/wfh/{{ $w->id }}/laporan"
-                                        class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] font-semibold btn-laporan"
-                                        data-jam-in="{{ $presensihariini->jam_in ?? '' }}"
-                                        data-tgl-wfh="{{ $w->tgl_wfh }}">Upload
-                                        Laporan</a>
-                                @else
-                                @endif
+                                <div class="flex items-center gap-2 shrink-0 ml-2">
+                                    @if ($w->status === 'approved' && empty($w->laporan_deskripsi))
+                                        <a href="/presensi/wfh/{{ $w->id }}/laporan"
+                                            class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] font-semibold btn-laporan"
+                                            data-jam-in="{{ $presensihariini->jam_in ?? '' }}"
+                                            data-tgl-wfh="{{ $w->tgl_wfh }}">Upload
+                                            Laporan</a>
+                                    @else
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
         {{-- Alert H-1 WFH --}}
         @if (isset($wfhBesok) && $wfhBesok)
@@ -473,76 +475,89 @@
 
     {{-- COUNTDOWN ALERT UPLOAD LAPORAN --}}
     <script>
-        document.querySelectorAll('.btn-laporan').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                var tglWfh = this.getAttribute('data-tgl-wfh');
-                var jamIn = this.getAttribute('data-jam-in');
-                var today = new Date();
-                var yyyy = today.getFullYear();
-                var mm = String(today.getMonth() + 1).padStart(2, '0');
-                var dd = String(today.getDate()).padStart(2, '0');
-                var todayStr = yyyy + '-' + mm + '-' + dd;
-                if (tglWfh && tglWfh !== todayStr) {
-                    e.preventDefault();
-                    var partsWfh = tglWfh.split('-');
-                    var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus',
-                        'September', 'Oktober', 'November', 'Desember'
-                    ];
-                    var label = parseInt(partsWfh[2]) + ' ' + months[parseInt(partsWfh[1]) - 1] + ' ' +
-                        partsWfh[0];
-                    Swal.fire({
-                        title: 'Tanggal Tidak Sesuai',
-                        html: 'Laporan WFH hanya bisa diupload pada tanggal pengajuan WFH.<br><br>Tanggal WFH: <b>' +
-                            label + '</b>',
-                        icon: 'warning',
-                        confirmButtonColor: '#7a5344',
-                        confirmButtonText: 'Tutup'
-                    });
-                    return;
-                }
-                if (!jamIn) return;
-                var parts = jamIn.split(':');
-                var jamInDate = new Date();
-                jamInDate.setHours(parseInt(parts[0]), parseInt(parts[1]) || 0, parseInt(parts[2]) || 0, 0);
-                var selisihMs = today - jamInDate;
-                var selisihJam = selisihMs / 3600000;
-                if (selisihJam < 7) {
-                    e.preventDefault();
-                    var sisaDetik = Math.ceil((7 * 3600000 - selisihMs) / 1000);
-                    var jam = Math.floor(sisaDetik / 3600);
-                    var menit = Math.floor((sisaDetik % 3600) / 60);
-                    var detik = sisaDetik % 60;
-                    var countdownInterval;
-                    Swal.fire({
-                        title: 'Belum Bisa Upload Laporan',
-                        html: 'Laporan WFH hanya bisa diupload setelah <b>7 jam</b> absen masuk.<br><br>Sisa waktu: <b id="sisaWaktu">' +
-                            jam + 'j ' + menit + 'm ' + detik + 's</b>',
-                        icon: 'info',
-                        confirmButtonText: 'Tutup',
-                        confirmButtonColor: '#7a5234',
-                        allowOutsideClick: false,
-                        didOpen: function() {
-                            var remaining = sisaDetik;
-                            countdownInterval = setInterval(function() {
-                                remaining--;
-                                if (remaining <= 0) {
-                                    clearInterval(countdownInterval);
-                                    Swal.close();
-                                    return;
-                                }
-                                var h = Math.floor(remaining / 3600);
-                                var m = Math.floor((remaining % 3600) / 60);
-                                var s = remaining % 60;
-                                var el = document.getElementById('sisaWaktu');
-                                if (el) el.textContent = h + 'j ' + m + 'm ' + s + 's';
-                            }, 1000);
-                        },
-                        willClose: function() {
-                            clearInterval(countdownInterval);
-                        }
-                    });
-                }
-            });
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.btn-laporan');
+            if (!btn) return;
+
+            var tglWfh = btn.getAttribute('data-tgl-wfh');
+            var jamIn = btn.getAttribute('data-jam-in');
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            var todayStr = yyyy + '-' + mm + '-' + dd;
+
+            if (tglWfh && tglWfh !== todayStr) {
+                e.preventDefault();
+                var partsWfh = tglWfh.split('-');
+                var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus',
+                    'September', 'Oktober', 'November', 'Desember'
+                ];
+                var label = parseInt(partsWfh[2]) + ' ' + months[parseInt(partsWfh[1]) - 1] + ' ' + partsWfh[0];
+                Swal.fire({
+                    title: 'Tanggal Tidak Sesuai',
+                    html: 'Laporan WFH hanya bisa diupload pada tanggal pengajuan WFH.<br><br>Tanggal WFH: <b>' +
+                        label + '</b>',
+                    icon: 'warning',
+                    confirmButtonColor: '#7a5344',
+                    confirmButtonText: 'Tutup'
+                });
+                return;
+            }
+
+            if (!jamIn) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Belum Absen Masuk',
+                    html: 'Anda harus melakukan presensi masuk terlebih dahulu sebelum bisa upload laporan WFH.',
+                    icon: 'warning',
+                    confirmButtonColor: '#7a5344',
+                    confirmButtonText: 'Tutup'
+                });
+                return;
+            }
+            
+            var parts = jamIn.split(':');
+            var jamInDate = new Date();
+            jamInDate.setHours(parseInt(parts[0]), parseInt(parts[1]) || 0, parseInt(parts[2]) || 0, 0);
+            var selisihMs = today - jamInDate;
+            var selisihJam = selisihMs / 3600000;
+            if (selisihJam < 7) {
+                e.preventDefault();
+                var sisaDetik = Math.ceil((7 * 3600000 - selisihMs) / 1000);
+                var jam = Math.floor(sisaDetik / 3600);
+                var menit = Math.floor((sisaDetik % 3600) / 60);
+                var detik = sisaDetik % 60;
+                var countdownInterval;
+                Swal.fire({
+                    title: 'Belum Bisa Upload Laporan',
+                    html: 'Laporan WFH hanya bisa diupload setelah <b>7 jam</b> absen masuk.<br><br>Sisa waktu: <b id="sisaWaktu">' +
+                        jam + 'j ' + menit + 'm ' + detik + 's</b>',
+                    icon: 'info',
+                    confirmButtonText: 'Tutup',
+                    confirmButtonColor: '#7a5234',
+                    allowOutsideClick: false,
+                    didOpen: function() {
+                        var remaining = sisaDetik;
+                        countdownInterval = setInterval(function() {
+                            remaining--;
+                            if (remaining <= 0) {
+                                clearInterval(countdownInterval);
+                                Swal.close();
+                                return;
+                            }
+                            var h = Math.floor(remaining / 3600);
+                            var m = Math.floor((remaining % 3600) / 60);
+                            var s = remaining % 60;
+                            var el = document.getElementById('sisaWaktu');
+                            if (el) el.textContent = h + 'j ' + m + 'm ' + s + 's';
+                        }, 1000);
+                    },
+                    willClose: function() {
+                        clearInterval(countdownInterval);
+                    }
+                });
+            }
         });
     </script>
 
@@ -762,6 +777,91 @@
                             const jamOutEl = document.querySelector('[data-presensi-jam-out]');
                             if (jamInEl && data.presensi.jam_in) jamInEl.textContent = data.presensi.jam_in;
                             if (jamOutEl && data.presensi.jam_out) jamOutEl.textContent = data.presensi.jam_out;
+                        }
+
+                        // 7. Update Perlu Tindakan (WFH Saya)
+                        if (data.wfhSaya) {
+                            const section = document.getElementById('perluTindakanSection');
+                            if (section) {
+                                if (data.wfhSaya.length === 0) {
+                                    section.innerHTML = '';
+                                } else {
+                                    let badgeMap = {
+                                        'pending_atasan': ['bg-amber-100 text-amber-700 border-amber-200',
+                                            'Menunggu Persetujuan'
+                                        ],
+                                        'pending_admin': ['bg-amber-100 text-amber-700 border-amber-200',
+                                            'Menunggu Persetujuan'
+                                        ],
+                                        'approved': ['bg-emerald-100 text-emerald-700 border-emerald-200',
+                                            'Disetujui'
+                                        ],
+                                        'rejected': ['bg-rose-100 text-rose-700 border-rose-200', 'Ditolak'],
+                                        'unpaid': ['bg-gray-100 text-gray-700 border-gray-200', 'Unpaid']
+                                    };
+                                    let lBadgeMap = {
+                                        'pending_atasan': 'bg-amber-100 text-amber-700',
+                                        'pending_admin': 'bg-blue-100 text-blue-700',
+                                        'approved': 'bg-emerald-100 text-emerald-700',
+                                        'rejected': 'bg-rose-100 text-rose-700'
+                                    };
+                                    let lLabelMap = {
+                                        'pending_atasan': 'Laporan: Menunggu Atasan',
+                                        'pending_admin': 'Laporan: Menunggu Admin',
+                                        'approved': 'Laporan: Disetujui',
+                                        'rejected': 'Laporan: Ditolak'
+                                    };
+                                    let html =
+                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><ion-icon name="home-outline"></ion-icon></span>Perlu Tindakan</h3><a href="/presensi/wfh" class="text-[11px] font-semibold text-sky-700">Lihat Semua</a></div>';
+                                    data.wfhSaya.forEach(function(w) {
+                                        var b = badgeMap[w.status] || [
+                                            'bg-gray-100 text-gray-700 border-gray-200', w.status
+                                        ];
+                                        var dateStr = new Date(w.tgl_wfh).toLocaleDateString('id-ID', {
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        });
+                                        var keterangan = w.keterangan ?
+                                            '<div class="text-[11px] text-[#78716c] mt-0.5 italic">' + (w
+                                                .keterangan.length > 50 ? w.keterangan.substring(0, 50) +
+                                                '...' : w.keterangan) + '</div>' : '';
+                                        var deskripsi = w.deskripsi_pekerjaan ?
+                                            '<div class="text-[11px] text-[#78716c] mt-0.5">' + (w
+                                                .deskripsi_pekerjaan.length > 50 ? w.deskripsi_pekerjaan
+                                                .substring(0, 50) + '...' : w.deskripsi_pekerjaan) +
+                                            '</div>' : '';
+                                        var laporanBadge = '';
+                                        if (w.laporan_status) {
+                                            var lb = lBadgeMap[w.laporan_status] ||
+                                                'bg-gray-100 text-gray-700';
+                                            var ll = lLabelMap[w.laporan_status] || 'Laporan: ' + w
+                                                .laporan_status;
+                                            laporanBadge =
+                                                '<span class="ml-1 inline-flex items-center rounded-full border text-[10px] px-2 py-0.5 ' +
+                                                lb + '">' + ll + '</span>';
+                                        }
+                                        var actionBtn = '';
+                                        if (w.status === 'approved' && !w.laporan_deskripsi) {
+                                            actionBtn = '<a href="/presensi/wfh/' + w.id +
+                                                '/laporan" class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] font-semibold btn-laporan" data-jam-in="' +
+                                                (data.presensi && data.presensi.jam_in ? data.presensi
+                                                    .jam_in : '') + '" data-tgl-wfh="' + w.tgl_wfh +
+                                                '">Upload Laporan</a>';
+                                        }
+                                        html +=
+                                            '<div class="card mb-2"><div class="card-body p-3 flex items-center justify-between"><div class="flex-1 min-w-0"><div class="text-[13px] font-bold text-[#1c1917]">' +
+                                            dateStr +
+                                            ' <span class="ml-1 inline-flex items-center rounded-full border text-[10px] px-2 py-0.5 ' +
+                                            b[0] + '">' + b[1] + '</span></div>' + keterangan + deskripsi +
+                                            laporanBadge +
+                                            '</div><div class="flex items-center gap-2 shrink-0 ml-2">' +
+                                            actionBtn + '</div></div></div>';
+                                    });
+                                    html += '</div>';
+                                    section.innerHTML = html;
+                                }
+                            }
                         }
 
                     }).catch(() => {});
