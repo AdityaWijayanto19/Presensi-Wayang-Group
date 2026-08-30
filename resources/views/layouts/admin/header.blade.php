@@ -12,9 +12,7 @@
 
             <div class="nav-item dropdown">
 
-                <a href="#"
-                    class="nav-link d-flex lh-1 text-reset p-0"
-                    data-bs-toggle="dropdown"
+                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown"
                     aria-label="Open user menu">
 
                     <span class="avatar avatar-sm"
@@ -37,9 +35,11 @@
 
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
 
-                    <a href="/proseslogoutadmin"
-                        class="dropdown-item"
-                        id="logout-admin">
+                    <a href="/admin/settings/permissions" class="dropdown-item">
+                        Pengaturan
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="/proseslogoutadmin" class="dropdown-item" id="logout-admin">
 
                         Logout
 
@@ -58,10 +58,7 @@
 
             <div>
 
-                <form action="./"
-                    method="get"
-                    autocomplete="off"
-                    novalidate>
+                <form action="./" method="get" autocomplete="off" novalidate>
 
                     <div class="input-icon">
 

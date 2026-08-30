@@ -107,7 +107,7 @@
     </div>
 
 
-    {{-- Jabatan --}}
+    {{-- Posisi (Job Title) --}}
     <div class="row">
 
         <div class="col-12">
@@ -140,11 +140,11 @@
 
                 <input
                     type="text"
-                    name="jabatan"
-                    id="jabatan"
+                    name="posisi"
+                    id="posisi"
                     class="form-control"
-                    value="{{ $karyawan->jabatan }}"
-                    placeholder="Jabatan"
+                    value="{{ $karyawan->posisi }}"
+                    placeholder="Posisi (contoh: Staff Accounting)"
                     autocomplete="off">
 
             </div>
@@ -155,8 +155,103 @@
 
 
     {{-- =====================================================
-         UNIT PERUSAHAAN
-    ===================================================== --}}
+          JABATAN (Dropdown)
+     ===================================================== --}}
+
+    <div class="row mb-3">
+
+        <div class="col-12">
+
+            <label class="form-label fw-bold">Jabatan <span class="text-danger">*</span></label>
+            <select name="jabatan" id="edit_jabatan" class="form-select" required>
+
+                <option value="">Pilih Jabatan</option>
+
+                <option value="Intern" {{ $karyawan->jabatan=='Intern'?'selected':'' }}>Intern</option>
+
+                <option value="Staff" {{ $karyawan->jabatan=='Staff'?'selected':'' }}>Staff</option>
+
+                <option value="SPV" {{ $karyawan->jabatan=='SPV'?'selected':'' }}>SPV (Supervisor)</option>
+
+                <option value="Manager" {{ $karyawan->jabatan=='Manager'?'selected':'' }}>Manager</option>
+
+                <option value="GM" {{ $karyawan->jabatan=='GM'?'selected':'' }}>GM (General Manager)</option>
+
+                <option value="Direktur" {{ $karyawan->jabatan=='Direktur'?'selected':'' }}>Direktur</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    {{-- =====================================================
+          ROLE APPROVED
+     ===================================================== --}}
+
+    <div class="row mb-3" id="edit_role_approved_wrapper" style="{{ $karyawan->jabatan=='Direktur' || empty($karyawan->jabatan) ? 'display:none;' : '' }}">
+
+        <div class="col-12">
+
+            <label class="form-label fw-bold">Role Approved</label>
+            <select name="role_approved" id="edit_role_approved" class="form-select">
+
+                <option value="">Pilih Role Approved</option>
+
+                <option value="Staff" {{ ($karyawan->role_approved ?? '')=='Staff'?'selected':'' }}>Staff</option>
+
+                <option value="Manager" {{ ($karyawan->role_approved ?? '')=='Manager'?'selected':'' }}>Manager</option>
+
+                <option value="GM" {{ ($karyawan->role_approved ?? '')=='GM'?'selected':'' }}>GM (General Manager)</option>
+
+                <option value="Direktur" {{ ($karyawan->role_approved ?? '')=='Direktur'?'selected':'' }}>Direktur</option>
+
+            </select>
+
+            <small class="text-muted">Role yang berwenang menyetujui WFH/Lembur karyawan ini.</small>
+
+        </div>
+
+    </div>
+
+
+    {{-- =====================================================
+          ATASAN
+     ===================================================== --}}
+
+    <div class="row mb-3" id="edit_atasan_wrapper" style="{{ empty($karyawan->role_approved) ? 'display:none;' : '' }}">
+
+        <div class="col-12">
+
+            <select name="atasan_nik" id="edit_atasan_nik" class="form-select">
+
+                <option value="">Pilih Atasan</option>
+
+                @php
+                    $atasanMap = ['Staff'=>'Manager','Manager'=>'GM','GM'=>'Direktur','Direktur'=>null];
+                    $targetPosisi = $atasanMap[$karyawan->role_approved ?? ''] ?? null;
+                    $atasanList = $targetPosisi ? DB::table('karyawan')->where('jabatan',$targetPosisi)->where('nik','!=',$karyawan->nik)->get() : collect();
+                @endphp
+
+                @foreach($atasanList as $a)
+
+                    <option value="{{ $a->nik }}" {{ $karyawan->atasan_nik==$a->nik?'selected':'' }}>{{ $a->nama_lengkap }} ({{ $a->jabatan }} - {{ $a->posisi }})</option>
+
+                @endforeach
+
+            </select>
+
+            <small class="text-muted">Atasan muncul sesuai Role Approved yang dipilih.</small>
+
+        </div>
+
+    </div>
+
+
+    {{-- =====================================================
+          UNIT PERUSAHAAN
+     ===================================================== --}}
 
     <div class="row mb-3">
 

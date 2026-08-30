@@ -11,6 +11,7 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10",
+        "minishlink/web-push": "*",
         "spatie/laravel-permission": "^6.25"
     },
     "require-dev": {
@@ -47,7 +48,9 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
-        ]
+        ],
+        "dev": "npx concurrently -k -n server,vite -c blue,green \"php artisan serve\" \"npm run dev\"",
+        "start": "composer run dev"
     },
     "extra": {
         "laravel": {

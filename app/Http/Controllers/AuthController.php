@@ -69,6 +69,8 @@ class AuthController extends Controller
     public function proseslogout()
     {
         if (Auth::guard('karyawan')->check()) {
+            $nik = Auth::guard('karyawan')->user()->nik;
+            \DB::table('push_subscriptions')->where('nik', $nik)->delete();
 
             Auth::guard('karyawan')->logout();
 

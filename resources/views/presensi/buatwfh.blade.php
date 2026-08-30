@@ -1,116 +1,256 @@
 @extends('layouts.presensi')
 
 @section('header')
-
     <div class="appHeader bg-coklat text-light">
         <div class="left">
             <a href="/presensi/wfh" class="headerButton goBack">
                 <ion-icon name="chevron-back-outline"></ion-icon>
             </a>
         </div>
-        <div class="pageTitle">Kirim Dokumen Work From Home</div>
+        <div class="pageTitle">Pengajuan Work From Home</div>
         <div class="right"></div>
     </div>
-
 @endsection
 
 @section('content')
-
     <div class="flex mt-[70px]">
-        <div class="w-full px-2">
-            @php
-                $messagesuccess = Session::get('success');
-                $messageerror = Session::get('error');
-            @endphp
-
+        <div class="w-full px-3">
             @if(Session::get('success'))
-                <div class="bg-[#34c759] text-white border border-[#34c759] text-[13px] rounded-md py-1.5 px-4">{{ $messagesuccess }}</div>
+                <div class="bg-[#ecfdf5] border border-[#a7f3d0] text-[#065f46] text-[13px] rounded-xl py-2.5 px-3.5 mb-3">{{ Session::get('success') }}</div>
             @endif
-
             @if(Session::get('error'))
-                <div class="bg-[#ec4433] text-white border border-[#ec4433] text-[13px] rounded-md py-1.5 px-4">{{ $messageerror }}</div>
+                <div class="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] text-[13px] rounded-xl py-2.5 px-3.5 mb-3">{{ Session::get('error') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] text-[13px] rounded-xl py-2.5 px-3.5 mb-3">
+                    <ul class="mb-0 list-disc pl-4">
+                        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+                    </ul>
+                </div>
             @endif
 
-            <form method="POST" action="/presensi/storewfh" id="form_wfh" autocomplete="off" enctype="multipart/form-data">
+            <form method="POST" action="/presensi/storewfh" id="form_wfh" autocomplete="off">
                 @csrf
 
-                {{-- Tanggal WFH --}}
-                <div class="flex flex-wrap -mx-2 mt-2">
-                    <div class="w-full px-2">
-                        <div class="form-group">
-                            <input type="text" class="form-control datepicker" placeholder="Tanggal Work From Home" name="tgl_wfh" id="tgl_wfh" required>
+                {{-- Auto Info --}}
+                <div class="bg-white rounded-2xl border border-[#f0ece8] p-4 mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center text-coklat">
+                            <ion-icon name="person-outline" style="font-size:18px;"></ion-icon>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase">Pengaju</div>
+                            <div class="text-[14px] font-bold text-[#1c1917]">{{ $karyawan->nama_lengkap }}</div>
+                            <div class="text-[12px] text-[#78716c]">{{ $karyawan->posisi }} • {{ $karyawan->unit }} ({{ $karyawan->unitperusahaan->perusahaan ?? '' }})</div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Upload Form WFH --}}
-                <div class="form-group mt-2">
-                    <label class="text-base text-black font-medium">Form WFH</label>
-                    <small class="text-red-500 block -mt-1 mb-2">* Format yang didukung: PDF, DOC, DOCX, JPG, JPEG, PNG (Maks. 4 MB)</small>
-                    <input type="file" name="file_form" id="file_form" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                {{-- Tanggal WFH --}}
+                <div class="form-group">
+                    <label class="text-[12px] font-semibold text-[#44403c] mb-1 block">Tanggal WFH <span class="text-red-500">*</span></label>
+                    <input type="date" class="form-control" name="tgl_wfh" id="tgl_wfh" min="{{ $disableToday ? date('Y-m-d', strtotime('+1 day')) : date('Y-m-d') }}" required>
+                    @if($disableToday)
+                        <small class="text-[11px] text-red-500">Hari ini sudah lewat jam masuk. Minimal pengajuan H+1.</small>
+                    @else
+                        <small class="text-[11px] text-[#a8a29e]">Minimal H+1, tidak bisa hari ini jika sudah lewat jam masuk</small>
+                    @endif
                 </div>
 
-                {{-- Upload Laporan WFH --}}
-                <div class="form-group mt-2">
-                    <label class="text-base text-black font-medium">Laporan WFH</label>
-                    <small class="text-red-500 block -mt-1 mb-2">* Format yang didukung: PDF, DOC, DOCX, JPG, JPEG, PNG (Maks. 4 MB)</small>
-                    <input type="file" name="file_laporan" id="file_laporan" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                {{-- Keterangan WFH / Alasan WFH --}}
+                <div class="form-group mt-3">
+                    <label class="text-[12px] font-semibold text-[#44403c] mb-1 block">Keterangan WFH / Alasan WFH <span class="text-red-500">*</span></label>
+                    <textarea name="keterangan" id="keterangan" rows="3" class="form-control" placeholder="Jelaskan alasan mengapa harus WFH hari ini..." required>{{ old('keterangan') }}</textarea>
+                    <small class="text-[11px] text-[#a8a29e]">Contoh: kondisi kesehatan, jarak tempuh jauh, dll.</small>
                 </div>
 
-                {{-- Submit --}}
-                <div class="form-group mt-2">
-                    <button class="btn btn-primary w-full">Kirim Data WFH</button>
+                {{-- Deskripsi Pekerjaan --}}
+                <div class="form-group mt-3">
+                    <label class="text-[12px] font-semibold text-[#44403c] mb-1 block">Deskripsi Pekerjaan <span class="text-red-500">*</span></label>
+                    <textarea name="deskripsi_pekerjaan" id="deskripsi_pekerjaan" rows="5" class="form-control" placeholder="1. Mengembangkan fitur baru&#10;2. Testing dan debugging&#10;3. Dokumentasi hasil kerja" required>{{ old('deskripsi_pekerjaan') }}</textarea>
+                    <small class="text-[11px] text-[#a8a29e]"><span id="charCount">0</span>/2000 karakter • Maksimal 10 poin</small>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 flex gap-2.5">
+                    <ion-icon name="information-circle-outline" class="text-amber-600 text-[18px] shrink-0 mt-0.5"></ion-icon>
+                    <p class="text-[11px] leading-relaxed text-amber-800">Setelah submit, Surat WFH menunggu persetujuan. Setelah disetujui, kamu bisa input laporan setelah absen pulang.</p>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary w-full">
+                        <ion-icon name="paper-plane-outline" style="margin-right:6px;"></ion-icon> Ajukan WFH
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-
 @endsection
 
 @push('myscript')
-
 <script>
-    $(document).ready(function () {
-        flatpickr(".datepicker", { dateFormat: "Y-m-d" });
+$(function(){
+    var $el = $("#deskripsi_pekerjaan");
+    var MAX = 10;
 
-        $("#form_wfh").submit(function (e) {
+    // ── Helpers ──────────────────────────────────────────
+
+    // Cari nomor terbesar dari semua baris yang punya prefix "N. "
+    function maxLineNumber(text) {
+        var max = 0;
+        text.split("\n").forEach(function(l){
+            var m = l.match(/^(\d+)\.\s/);
+            if (m) max = Math.max(max, parseInt(m[1]));
+        });
+        return max;
+    }
+
+    // Renumber semua baris (dipanggil saat line dihapus)
+    function renumber(text) {
+        var lines = text.split("\n");
+        var out = [], num = 1;
+        for (var i = 0; i < lines.length; i++) {
+            var content = lines[i].replace(/^\d+[\.\s]*/, "");
+            if (content === "" && i === lines.length - 1) {
+                out.push(""); // trailing empty
+            } else if (content === "") {
+                continue; // skip baris kosong di tengah
+            } else {
+                out.push(num + ". " + content);
+                num++;
+            }
+        }
+        return out.join("\n");
+    }
+
+    // ── Focus ────────────────────────────────────────────
+
+    $el.on("focus", function(){
+        if (this.value === "") {
+            this.value = "1. ";
+        }
+    });
+
+    // ── Keydown: Enter + Backspace ───────────────────────
+
+    $el.on("keydown", function(e){
+        var val = this.value;
+        var pos = this.selectionStart;
+
+        // ═══════════════ ENTER ═══════════════
+        if (e.keyCode === 13) {
             e.preventDefault();
+            var lines = val.split("\n");
+            var trailing = lines[lines.length - 1] === "";
+            var totalLines = trailing ? lines.length - 1 : lines.length;
+            if (totalLines >= MAX) return;
 
-            var tgl_wfh = $("#tgl_wfh").val();
-            var file_form = $("#file_form")[0].files[0];
-            var file_laporan = $("#file_laporan")[0].files[0];
+            var nextNum = maxLineNumber(val) + 1;
 
-            if (tgl_wfh == "") {
-                Swal.fire({ title: 'Error!', icon: 'warning', text: 'Tanggal Work From Home harus diisi!', confirmButtonColor: '#7a5234' });
-                return false;
-            } else if (!file_form) {
-                Swal.fire({ title: 'Error!', icon: 'warning', text: 'Form WFH harus diupload!', confirmButtonColor: '#7a5234' });
-                return false;
-            } else if (!file_laporan) {
-                Swal.fire({ title: 'Error!', icon: 'warning', text: 'Laporan WFH harus diupload!', confirmButtonColor: '#7a5234' });
-                return false;
-            } else if (file_form.size > 4 * 1024 * 1024) {
-                Swal.fire({ title: 'Error!', icon: 'warning', text: 'Ukuran Form WFH maksimal 4 MB!', confirmButtonColor: '#7a5234' });
-                return false;
-            } else if (file_laporan.size > 4 * 1024 * 1024) {
-                Swal.fire({ title: 'Error!', icon: 'warning', text: 'Ukuran Laporan WFH maksimal 4 MB!', confirmButtonColor: '#7a5234' });
-                return false;
+            // Hapus trailing newline dulu supaya gak double
+            var cleanVal = trailing ? val.substring(0, val.length - 1) : val;
+            var cleanPos = Math.min(pos, cleanVal.length);
+            var before = cleanVal.substring(0, cleanPos);
+            var after = cleanVal.substring(cleanPos);
+
+            this.value = before + "\n" + nextNum + ". " + after;
+            var newPos = before.length + 1 + String(nextNum).length + 2;
+            this.setSelectionRange(newPos, newPos);
+            return;
+        }
+
+        // ═══════════════ BACKSPACE ═══════════════
+        if (e.keyCode === 8 && pos > 0) {
+            var beforeCursor = val.substring(0, pos);
+            var lines = val.split("\n");
+            var lineIdx = beforeCursor.split("\n").length - 1;
+            var currentLine = lines[lineIdx];
+
+            // Case A: baris cuma berisi prefix "N. " atau "N." → hapus seluruh baris
+            if (/^\d+\.?\s?$/.test(currentLine)) {
+                e.preventDefault();
+
+                // Jika cuma 1 baris → clear semua
+                if (lines.length <= 1) {
+                    this.value = "";
+                    this.setSelectionRange(0, 0);
+                    return;
+                }
+
+                // Hapus baris, renumber sisa
+                lines.splice(lineIdx, 1);
+                var newVal = renumber(lines.join("\n"));
+                this.value = newVal;
+
+                // Cursor ke akhir baris sebelumnya
+                var targetIdx = Math.max(0, lineIdx - 1);
+                var newLines = newVal.split("\n");
+                var cursorPos = 0;
+                for (var i = 0; i < targetIdx; i++) cursorPos += newLines[i].length + 1;
+                cursorPos += newLines[targetIdx].length;
+                this.setSelectionRange(cursorPos, cursorPos);
+                return;
             }
 
-            Swal.fire({
-                title: 'Kirim Data WFH?',
-                text: 'Pastikan data yang dikirim sudah benar!',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#7a5234',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Kirim!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) { $("#form_wfh")[0].submit(); }
-            });
-        });
-    });
-</script>
+            // Case B: cursor di awal baris (posisi = awal baris) dan baris punya prefix
+            var lineStart = beforeCursor.lastIndexOf("\n") + 1;
+            var linePrefix = currentLine.match(/^(\d+)\.\s/);
+            if (linePrefix && pos === lineStart + linePrefix[0].length) {
+                // Cursor tepat setelah prefix, backspace = merge dengan baris sebelumnya
+                // Biarkan browser handle normal (hapus spasi terakhir prefix)
+                // Tapi kita bisa skip prefix sekaligus:
+                e.preventDefault();
+                var prevLineIdx = lineIdx - 1;
+                if (prevLineIdx < 0) return;
 
+                var prevLine = lines[prevLineIdx];
+                var content = currentLine.replace(/^\d+\.\s/, "");
+                lines[prevLineIdx] = prevLine + content;
+                lines.splice(lineIdx, 1);
+                var newVal = renumber(lines.join("\n"));
+                this.value = newVal;
+
+                // Cursor di akhir prevLine content (sebelum content dari line yang dihapus)
+                var newLines = newVal.split("\n");
+                var cursorPos = 0;
+                for (var i = 0; i < prevLineIdx; i++) cursorPos += newLines[i].length + 1;
+                cursorPos += prevLine.length;
+                this.setSelectionRange(cursorPos, cursorPos);
+                return;
+            }
+        }
+    });
+
+    // ── Input: HANYA update char count ───────────────────
+
+    $el.on("input", function(){
+        $("#charCount").text(this.value.length);
+    });
+
+    // ── Init ─────────────────────────────────────────────
+
+    $("#charCount").text($el.val().length);
+
+    // ── Submit validation ────────────────────────────────
+
+    $("#form_wfh").submit(function(e){
+        e.preventDefault();
+        var tgl = $("#tgl_wfh").val();
+        var keterangan = $("#keterangan").val().trim();
+        var desk = $el.val().trim();
+        if(!tgl){ Swal.fire({icon:"warning", text:"Tanggal WFH harus diisi", confirmButtonColor:"#7a5234"}); return; }
+        if(!keterangan || keterangan.length < 5){ Swal.fire({icon:"warning", text:"Keterangan WFH minimal 5 karakter", confirmButtonColor:"#7a5234"}); return; }
+        if(!desk || desk.length < 10){ Swal.fire({icon:"warning", text:"Deskripsi minimal 10 karakter", confirmButtonColor:"#7a5234"}); return; }
+        Swal.fire({
+            title: "Ajukan WFH?",
+            text: "Data akan digenerate jadi PDF dan dikirim untuk persetujuan.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#7a5234",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Ajukan",
+            cancelButtonText: "Batal"
+        }).then(function(r){ if(r.isConfirmed) $("#form_wfh")[0].submit(); });
+    });
+});
+</script>
 @endpush

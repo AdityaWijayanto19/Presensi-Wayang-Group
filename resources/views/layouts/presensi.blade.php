@@ -842,6 +842,9 @@
             function closePreview() {
                 backdrop.classList.remove('open');
                 document.body.style.overflow = '';
+                // restore footer buttons for next preview
+                downloadEl.style.display = '';
+                openTabEl.style.display = '';
                 setTimeout(() => { body.innerHTML = '<div id="fileModalLoader" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center"><ion-icon name="hourglass-outline" class="text-[36px] text-[#d6c7b8] animate-pulse"></ion-icon><p class="text-[13px] text-[#78716c]">Memuat preview...</p></div>'; }, 200);
             }
 
@@ -853,6 +856,28 @@
                     // stopImmediate to prevent double firing if script bound twice
                     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
                     openPreview(pill.dataset.url, pill.dataset.filename || '', pill.dataset.label || '');
+                }
+            }, true);
+            // Laporan text preview (no file, only deskripsi)
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.js-preview-laporan');
+                if (btn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const deskripsi = btn.dataset.deskripsi || '';
+                    const tgl = btn.dataset.tgl || '';
+                    const label = btn.dataset.label || 'Laporan WFH — ' + tgl;
+                    titleEl.textContent = label;
+                    subtitleEl.textContent = 'Laporan • ' + tgl;
+                    downloadEl.style.display = 'none';
+                    openTabEl.style.display = 'none';
+                    backdrop.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                    const safe = deskripsi.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+                    body.innerHTML = '<div class="p-5">'
+                        + '<div class="flex items-center gap-2 mb-3"><div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700"><ion-icon name="clipboard-outline" style="font-size:18px;"></ion-icon></div><div><div class="text-[13px] font-bold text-[#1c1917]">' + label + '</div><div class="text-[11px] text-[#78716c]">' + tgl + '</div></div></div>'
+                        + '<div class="bg-[#fdf8f4] border border-[#f0ece8] rounded-xl p-4 text-[13px] leading-relaxed text-[#1c1917] whitespace-pre-wrap" style="max-height:50vh; overflow:auto;">' + safe + '</div>'
+                        + '</div>';
                 }
             }, true);
             // Direct open in new tab — explicit handler to avoid popup blocker / href timing issues
@@ -894,18 +919,66 @@
         })();
     </script>
 
-    {{-- Service Worker --}}
+    {{-- Service Worker & Push Subscription --}}
     <script>
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
             window.addEventListener('load', function () {
                 navigator.serviceWorker.register('/sw.js')
                     .then(function (registration) {
                         console.log('Service Worker Registered');
+                        return registration.pushManager.getSubscription();
+                    })
+                    .then(function (subscription) {
+                        if (!subscription) {
+                            return Notification.requestPermission().then(function (permission) {
+                                if (permission === 'granted') {
+                                    return registerPush();
+                                }
+                            });
+                        }
                     })
                     .catch(function (error) {
                         console.log('Service Worker Failed', error);
                     });
             });
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        async function registerPush() {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array('{{ config("webpush.vapid.public_key") }}')
+                });
+                const sub = subscription.toJSON();
+                await fetch('/api/push/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        endpoint: sub.endpoint,
+                        public_key: sub.keys.p256dh,
+                        auth_token: sub.keys.auth
+                    })
+                });
+                console.log('Push subscription saved');
+            } catch (error) {
+                console.log('Push subscription failed', error);
+            }
         }
     </script>
 

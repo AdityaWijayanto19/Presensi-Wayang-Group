@@ -23,7 +23,9 @@ class KaryawanController extends Controller
 
         $query->select(
             'karyawan.*',
-            'perusahaan'
+            'perusahaan',
+            'atasan.nama_lengkap as atasan_nama',
+            'atasan.jabatan as atasan_jabatan'
         );
 
         $query->join(
@@ -33,11 +35,12 @@ class KaryawanController extends Controller
             'unitperusahaan.unit'
         );
 
-        $query->orderBy('nama_lengkap');
+        $query->leftJoin('karyawan as atasan', 'karyawan.atasan_nik', '=', 'atasan.nik');
+
+        $query->orderBy('karyawan.nama_lengkap');
 
         if (!empty($request->nama_karyawan)) {
-            $query->where(
-                'nama_lengkap',
+            $query->where('karyawan.nama_lengkap',
                 'like',
                 '%' . $request->nama_karyawan . '%'
             );
@@ -48,6 +51,10 @@ class KaryawanController extends Controller
                 'karyawan.unit',
                 $request->unit
             );
+        }
+
+        if (!empty($request->jabatan_filter)) {
+            $query->where('karyawan.jabatan', $request->jabatan_filter);
         }
 
         $karyawan = $query
@@ -77,7 +84,10 @@ class KaryawanController extends Controller
         $request->validate([
             'nik' => 'required|unique:karyawan,nik',
             'nama_lengkap' => 'required',
-            'jabatan' => 'required',
+            'jabatan' => 'required|in:Intern,Staff,SPV,Manager,GM,Direktur', // UI Jabatan dropdown -> DB jabatan (hierarchy)
+            'posisi' => 'required', // UI Posisi text -> DB posisi (job title)
+            'role_approved' => 'nullable|in:Staff,Manager,GM,Direktur',
+            'atasan_nik' => 'nullable|exists:karyawan,nik',
             'unit' => 'required',
             'no_hp' => 'required',
         ]);
@@ -85,7 +95,18 @@ class KaryawanController extends Controller
         $nik = $request->nik;
         $nama_lengkap = $request->nama_lengkap;
         $unit = $request->unit;
-        $jabatan = $request->jabatan;
+        $jabatan = $request->jabatan;  // hierarchy level
+        $posisi = $request->posisi;    // job title
+        $roleApproved = $request->role_approved ?: null;
+        $atasan_nik = $request->atasan_nik ?: null;
+        // Direktur tidak punya atasan
+        if ($roleApproved === 'Direktur') {
+            $atasan_nik = null;
+        }
+        // Cegah self-reference
+        if ($atasan_nik === $nik) {
+            $atasan_nik = null;
+        }
         $no_hp = $request->no_hp;
         $password = Hash::make('12345');
 
@@ -101,7 +122,10 @@ class KaryawanController extends Controller
                 'nik' => $nik,
                 'nama_lengkap' => $nama_lengkap,
                 'unit' => $unit,
-                'jabatan' => $jabatan,
+                'jabatan' => $jabatan,   // hierarchy level
+                'posisi' => $posisi,     // job title
+                'role_approved' => $roleApproved,
+                'atasan_nik' => $atasan_nik,
                 'no_hp' => $no_hp,
                 'foto' => $foto,
                 'password' => $password
@@ -165,12 +189,26 @@ class KaryawanController extends Controller
     {
         $request->validate([
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'password' => 'nullable|min:5'
+            'password' => 'nullable|min:5',
+            'jabatan' => 'required|in:Intern,Staff,SPV,Manager,GM,Direktur', // UI Jabatan -> DB jabatan (hierarchy)
+            'posisi' => 'required', // UI Posisi -> DB posisi (job title)
+            'role_approved' => 'nullable|in:Staff,Manager,GM,Direktur',
+            'atasan_nik' => 'nullable|exists:karyawan,nik',
         ]);
 
         $nama_lengkap = $request->nama_lengkap;
         $unit = $request->unit;
-        $jabatan = $request->jabatan;
+        $jabatan = $request->jabatan;  // hierarchy level
+        $posisi = $request->posisi;    // job title
+        $roleApproved = $request->role_approved ?: null;
+        $atasan_nik = $request->atasan_nik ?: null;
+        if ($roleApproved === 'Direktur') {
+            $atasan_nik = null;
+        }
+        // cegah atasan diri sendiri
+        if ($atasan_nik === $nik) {
+            $atasan_nik = null;
+        }
         $no_hp = $request->no_hp;
         $foto_lama = $request->foto_lama;
 
@@ -185,7 +223,10 @@ class KaryawanController extends Controller
             $data = [
                 'nama_lengkap' => $nama_lengkap,
                 'unit' => $unit,
-                'jabatan' => $jabatan,
+                'jabatan' => $jabatan,   // hierarchy level
+                'posisi' => $posisi,     // job title
+                'role_approved' => $roleApproved,
+                'atasan_nik' => $atasan_nik,
                 'no_hp' => $no_hp,
                 'foto' => $foto,
             ];
@@ -260,6 +301,33 @@ class KaryawanController extends Controller
     // =====================================================
     // HAPUS KARYAWAN
     // =====================================================
+
+    public function getAtasan(Request $request)
+    {
+        $roleApproved = $request->role_approved;
+        if (!$roleApproved) {
+            return response()->json([]);
+        }
+        // Role Approved -> ambil atasan level DI ATASNYA
+        // Staff -> Manager, Manager -> GM, GM -> Direktur, Direktur -> null
+        $atasanMap = [
+            'Staff' => 'Manager',
+            'Manager' => 'GM',
+            'GM' => 'Direktur',
+            'Direktur' => null,
+        ];
+        $targetPosisi = $atasanMap[$roleApproved] ?? null;
+        if (!$targetPosisi) {
+            return response()->json([]);
+        }
+        // exclude self if editing
+        $excludeNik = $request->exclude_nik;
+        $query = DB::table('karyawan')->where('role_approved', $targetPosisi)->select('nik','nama_lengkap','jabatan','posisi')->orderBy('karyawan.nama_lengkap');
+        if ($excludeNik) {
+            $query->where('nik', '!=', $excludeNik);
+        }
+        return response()->json($query->get());
+    }
 
     public function delete(string $nik)
     {
@@ -357,6 +425,42 @@ class KaryawanController extends Controller
             DB::table('lembur')
                 ->where('nik', $nik)
                 ->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Hapus Dokumen WFH milik karyawan ini saja
+            |--------------------------------------------------------------------------
+            */
+
+            $wfhOwn = DB::table('wfh')
+                ->where('nik', $nik)
+                ->get();
+
+            foreach ($wfhOwn as $w) {
+                if (!empty($w->pdf_form_path)) {
+                    Storage::disk('public')->delete($w->pdf_form_path);
+                }
+                if (!empty($w->laporan_file)) {
+                    Storage::disk('public')->delete($w->laporan_file);
+                }
+            }
+
+            // hapus wfh milik karyawan
+            DB::table('wfh')->where('nik', $nik)->delete();
+            // null-kan atasan yang dipegang karyawan ini
+            DB::table('karyawan')->where('atasan_nik', $nik)->update(['atasan_nik' => null]);
+            // null-kan atasan_nik di wfh yang menunggu approval dari karyawan ini + update laporan status
+            DB::table('wfh')->where('atasan_nik', $nik)->update([
+                'atasan_nik' => null,
+                'status' => 'pending_admin',
+                'atasan_status' => 'pending',
+            ]);
+            // update laporan yang menunggu approval atasan ini
+            DB::table('wfh')->where('laporan_atasan_nik', $nik)->where('laporan_status', 'pending_atasan')->update([
+                'laporan_atasan_nik' => null,
+                'laporan_status' => 'pending_admin',
+                'laporan_atasan_status' => 'pending',
+            ]);
 
             /*
             |--------------------------------------------------------------------------

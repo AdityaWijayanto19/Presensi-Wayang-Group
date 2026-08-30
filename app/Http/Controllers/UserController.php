@@ -55,24 +55,26 @@ class UserController extends Controller
     // SIMPAN DATA USER
     public function store(Request $request)
     {
-        $nama_user = $request->nama_user;
-        $email = $request->email;
-        $unit = $request->unit;
-        $role = $request->role;
-        $password = bcrypt($request->password);
+        $request->validate([
+            'nama_user' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'unit' => 'required|exists:unitperusahaan,unit',
+            'role' => 'required',
+            'password' => 'required|min:6',
+        ]);
 
         DB::beginTransaction();
 
         try {
 
             $user = User::create([
-                'name' => $nama_user,
-                'email' => $email,
-                'unit' => $unit,
-                'password' => $password
+                'name' => $request->nama_user,
+                'email' => $request->email,
+                'unit' => $request->unit,
+                'password' => $request->password, // 'hashed' cast handles hashing
             ]);
 
-            $user->assignRole($role);
+            $user->assignRole($request->role);
 
             DB::commit();
 
@@ -143,7 +145,7 @@ class UserController extends Controller
 
         // Kalau password diisi
         if (!empty($request->password)) {
-            $data['password'] = bcrypt($request->password);
+            $data['password'] = Hash::make($request->password);
         }
 
         DB::beginTransaction();

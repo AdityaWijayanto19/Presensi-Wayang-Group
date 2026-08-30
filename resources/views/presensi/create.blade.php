@@ -70,15 +70,6 @@
         var notifikasi_in = document.getElementById("notifikasi_in");
         var notifikasi_out = document.getElementById("notifikasi_out");
 
-        Webcam.set({
-            height: 480,
-            width: 360,
-            image_format: 'jpeg',
-            quality: 95
-        });
-
-        Webcam.attach('.webcam-capture');
-
         var lokasi = document.getElementById('lokasi');
 
         function cekLokasi() {
@@ -91,7 +82,54 @@
             }
         }
 
-        cekLokasi();
+        function errorCallback() {
+            Swal.fire({
+                title: 'Lokasi Belum Aktif',
+                text: 'Silakan aktifkan GPS/Lokasi terlebih dahulu untuk melakukan presensi.',
+                icon: 'warning',
+                confirmButtonText: 'Cek Ulang Lokasi',
+                confirmButtonColor: '#9c6b43'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cekLokasi();
+                }
+            });
+        }
+
+        // Cek permission preferences sebelum request kamera & lokasi
+        fetch('/api/user/permissions', { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(perms => {
+                if (perms.camera) {
+                    Webcam.set({
+                        height: 480,
+                        width: 360,
+                        image_format: 'jpeg',
+                        quality: 95
+                    });
+                    Webcam.attach('.webcam-capture');
+                } else {
+                    var camEl = document.querySelector('.webcam-capture');
+                    if (camEl) camEl.innerHTML = '<div class="p-4 text-center text-[12px] text-[#a8a29e]">Izin kamera belum diaktifkan. <a href="/settings/permissions" class="text-sky-700 underline">Aktifkan di Pengaturan</a></div>';
+                }
+                if (perms.location) {
+                    cekLokasi();
+                } else {
+                    var mapEl = document.getElementById('map');
+                    if (mapEl) mapEl.innerHTML = '<div class="p-4 text-center text-[12px] text-[#a8a29e]">Izin lokasi belum diaktifkan. <a href="/settings/permissions" class="text-sky-700 underline">Aktifkan di Pengaturan</a></div>';
+                }
+            })
+            .catch(() => {
+                // Fallback: tetap jalan seperti biasa kalau fetch gagal
+                Webcam.set({
+                    height: 480,
+                    width: 360,
+                    image_format: 'jpeg',
+                    quality: 95
+                });
+                Webcam.attach('.webcam-capture');
+                cekLokasi();
+            });
 
         function successCallback(position) {
             var lat = position.coords.latitude;

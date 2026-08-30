@@ -2,12 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Jabatan;
+use App\Enums\WfhStatus;
+use App\Notifications\WfhApproved;
+use App\Notifications\WfhApprovedByAtasan;
+use App\Notifications\WfhMarkedUnpaid;
+use App\Notifications\WfhRejected;
+use App\Notifications\WfhSubmitted;
+use App\Services\WfhService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PresensiController extends Controller
 {
@@ -129,6 +138,19 @@ class PresensiController extends Controller
                 $sisaJam = ceil(8 - $selisihJamKerja);
         
                 echo "error|Belum bisa presensi pulang! Minimal bekerja 8 jam.|out";
+                return;
+            }
+        }
+
+        // CEK LAPORAN WFH - Karyawan WFH harus upload laporan sebelum absen pulang
+        if ($cek && $cek->jam_out == null) {
+            $wfhToday = DB::table('wfh')
+                ->where('nik', $nik)
+                ->where('tgl_wfh', $tgl_presensi)
+                ->where('status', 'approved')
+                ->first();
+            if ($wfhToday && empty($wfhToday->laporan_deskripsi)) {
+                echo 'error|Anda harus mengupload laporan WFH terlebih dahulu sebelum presensi pulang. Silakan upload laporan.|out';
                 return;
             }
         }
@@ -492,27 +514,46 @@ class PresensiController extends Controller
     
         return redirect()->back()->with('success', 'Data lembur berhasil dihapus!');
     }
-    
-    
     // =====================================================
-    // WFH KARYAWAN
+    // WFH KARYAWAN - Refactored Workflow (Best Practice)
     // =====================================================
     
     public function wfh()
     {
-        $nik = Auth::guard('karyawan')->user()->nik;
-    
-        $datawfh = DB::table('wfh')
-            ->where('nik', $nik)
-            ->orderBy('tgl_wfh', 'desc')
+        $karyawan = Auth::guard("karyawan")->user();
+        $nik = $karyawan->nik;
+
+        // History clear — hanya approved + sudah input laporan (laporan_deskripsi terisi) yang tampil di presensi/wfh
+        $datawfh = DB::table("wfh")
+            ->leftJoin("karyawan as atasan", "wfh.atasan_nik", "=", "atasan.nik")
+            ->where("wfh.nik", $nik)
+            ->where("wfh.status", WfhStatus::Approved->value)
+            ->whereNotNull("wfh.laporan_deskripsi")
+            ->where("wfh.laporan_deskripsi", "!=", "")
+            ->select("wfh.*", "atasan.nama_lengkap as atasan_nama", "atasan.jabatan as atasan_jabatan")
+            ->orderBy("wfh.tgl_wfh", "desc")
             ->get();
-    
-        return view('presensi.wfh', compact('datawfh'));
+
+        return view("presensi.wfh", compact("datawfh"));
     }
     
     public function buatwfh()
     {
-        return view('presensi.buatwfh');
+        $karyawan = Auth::guard("karyawan")->user()->load("unitperusahaan");
+        $nik = $karyawan->nik;
+        // Ambil presensi hari ini untuk lokasi absen masuk
+        $presensiToday = DB::table('presensi')
+            ->where('nik', $nik)
+            ->where('tgl_presensi', date('Y-m-d'))
+            ->first();
+
+        // Cek jam kerja untuk disable tanggal hari ini
+        $unitkerja = DB::table('unitperusahaan')->where('unit', $karyawan->unit)->first();
+        $jamMasuk = $unitkerja?->jam_masuk ?? '08:00:00';
+        $sekarang = date('H:i:s');
+        $disableToday = ($sekarang >= $jamMasuk);
+
+        return view("presensi.buatwfh", compact("karyawan", "presensiToday", "disableToday"));
     }
     
     // =====================================================
@@ -521,79 +562,143 @@ class PresensiController extends Controller
     
     public function showfilewfh(string $file)
     {
-        $path = storage_path('app/public/uploads/wfh/' . $file);
-    
-        if (!file_exists($path)) {
+        // Sanitize: only allow safe filename characters
+        $file = basename($file);
+        if (!preg_match('/^[a-zA-Z0-9._-]+$/', $file)) {
             abort(404);
         }
-    
-        return response()->file($path);
+
+        $candidates = [
+            'wfh/' . $file,
+            'uploads/wfh/' . $file,
+        ];
+        foreach ($candidates as $rel) {
+            if (Storage::disk('public')->exists($rel)) {
+                return Storage::disk('public')->response($rel);
+            }
+        }
+        // Fallback DB lookup
+        $wfh = DB::table('wfh')
+            ->where('pdf_form_path', 'like', '%/' . $file)
+            ->orWhere('laporan_file', 'like', '%/' . $file)
+            ->first();
+        if ($wfh) {
+            $try = [
+                $wfh->pdf_form_path ?? '',
+                $wfh->laporan_file ?? '',
+            ];
+            foreach ($try as $rel) {
+                if ($rel && Storage::disk('public')->exists($rel)) {
+                    return Storage::disk('public')->response($rel);
+                }
+                $abs = storage_path('app/public/' . $rel);
+                if ($rel && file_exists($abs)) return response()->file($abs);
+            }
+        }
+        abort(404);
     }
 
     
     // =====================================================
-    // SIMPAN DATA WFH
+    // SIMPAN DATA WFH - New Workflow
     // =====================================================
     
     public function storewfh(Request $request)
     {
-        $nik = Auth::guard('karyawan')->user()->nik;
-    
-        // VALIDASI
+        $karyawan = Auth::guard("karyawan")->user();
+        $nik = $karyawan->nik;
+
         $request->validate([
-            'tgl_wfh'       => 'required|date',
-            'file_form'     => 'required|mimes:pdf,doc,docx,jpg,jpeg,png|max:4096',
-            'file_laporan'  => 'required|mimes:pdf,doc,docx,jpg,jpeg,png|max:4096'
+            "tgl_wfh" => "required|date|after_or_equal:today",
+            "keterangan" => "required|string|min:5|max:1000",
+            "deskripsi_pekerjaan" => "required|string|min:10|max:2000",
         ]);
-    
-        // CEK APAKAH SUDAH ADA WFH DI TANGGAL TERSEBUT
-        $cek = DB::table('wfh')
-            ->where('nik', $nik)
-            ->where('tgl_wfh', $request->tgl_wfh)
-            ->count();
-    
-        if ($cek > 0) {
-    
-            return redirect()->back()->with(
-                'error',
-                'Anda sudah mengirim data WFH pada tanggal tersebut!'
-            );
-    
+
+        // Cek duplikat tanggal
+        $cek = DB::table("wfh")->where("nik", $nik)->where("tgl_wfh", $request->tgl_wfh)->exists();
+        if ($cek) {
+            return redirect()->back()->with("error", "Anda sudah mengajukan WFH pada tanggal tersebut!")->withInput();
         }
-    
-        // CEK KEDUA FILE
-        if ($request->hasFile('file_form') && $request->hasFile('file_laporan')) {
-    
-            $form = $request->file('file_form');
-            $laporan = $request->file('file_laporan');
-    
-            // NAMA FILE
-            $timestamp = date('YmdHis');
-    
-            $nama_form = $timestamp . "-form-" . $form->getClientOriginalName();
-            $nama_laporan = $timestamp . "-laporan-" . $laporan->getClientOriginalName();
-    
-            // SIMPAN FILE
-            $form->storeAs('public/uploads/wfh', $nama_form);
-            $laporan->storeAs('public/uploads/wfh', $nama_laporan);
-    
-            // SIMPAN DATABASE
-            DB::table('wfh')->insert([
-                'nik'              => $nik,
-                'tgl_wfh'          => $request->tgl_wfh,
-                'file_form'        => $nama_form,
-                'file_laporan'     => $nama_laporan,
-                'dikirim_tanggal'  => now()
+
+        // Validasi H-1 minimal & jam kerja (optional, not blocking)
+        // Ambil atasan dari DB (admin set)
+        $karyawanFresh = \App\Models\Karyawan::with("unitperusahaan")->where("nik", $nik)->first();
+        $atasanNik = WfhService::determineAtasanNik($karyawanFresh);
+        $jabatan = $karyawanFresh->jabatan instanceof Jabatan ? $karyawanFresh->jabatan->value : $karyawanFresh->jabatan;
+        $posisi = $karyawanFresh->posisi; // job title
+
+        $initial = WfhService::initialStatus($karyawanFresh);
+        $status = $initial["status"];
+        $atasanStatus = $initial["atasan_status"];
+        $adminStatus = $initial["admin_status"];
+
+        // Data untuk PDF
+        $unit = $karyawanFresh->unit;
+        $perusahaan = $karyawanFresh->unitperusahaan->perusahaan ?? "-";
+        $jabatan = $karyawanFresh->jabatan;
+        $atasan = $atasanNik ? \App\Models\Karyawan::where("nik", $atasanNik)->first() : null;
+
+        $pdfData = [
+            "headerSuratPath" => "assets/img/header-surat.png",
+            "nama_lengkap" => $karyawanFresh->nama_lengkap,
+            "jabatan" => $jabatan instanceof Jabatan ? $jabatan->value : $jabatan,
+            "posisi" => $posisi ?? "-",
+            "perusahaan" => $perusahaan,
+            "tgl_wfh" => $request->tgl_wfh,
+            "deskripsi_pekerjaan" => $request->deskripsi_pekerjaan,
+            "nama_atasan" => $atasan?->nama_lengkap ?? "-",
+            "jabatan_atasan" => $atasan?->jabatan instanceof Jabatan ? $atasan->jabatan->value : ($atasan?->jabatan ?? "-"),
+            "nama_approver" => "-",
+            "jabatan_approver" => "-",
+        ];
+
+        // Stempel path
+        $stempelPath = WfhService::getStempelPath();
+
+        DB::beginTransaction();
+        try {
+            $pdfPath = WfhService::generatePdf($pdfData, $stempelPath);
+
+            $id = DB::table("wfh")->insertGetId([
+                "nik" => $nik,
+                "jabatan" => $jabatan,
+                "posisi" => $posisi,
+                "tgl_wfh" => $request->tgl_wfh,
+                "deskripsi_pekerjaan" => $request->deskripsi_pekerjaan,
+                "keterangan" => $request->keterangan,
+                "atasan_nik" => $atasanNik,
+                "status" => $status,
+                "atasan_status" => $atasanStatus,
+                "admin_status" => $adminStatus,
+                "pdf_form_path" => $pdfPath,
+                "dikirim_tanggal" => now(),
             ]);
-    
-            return redirect('/presensi/wfh')
-                ->with('success', 'Data WFH berhasil dikirim!');
-    
-        } else {
-    
-            return redirect()->back()
-                ->with('error', 'Data gagal dikirim!');
-    
+
+            $wfh = DB::table("wfh")->where("id", $id)->first();
+
+            // Notifikasi ke atasan atau admin
+            if ($atasanNik) {
+                $atasanUser = \App\Models\Karyawan::where("nik", $atasanNik)->first();
+                if ($atasanUser) {
+                    $atasanUser->notify(new WfhSubmitted((object)$wfh, $karyawanFresh));
+                    WfhService::sendWebPush($atasanNik, "Pengajuan WFH Baru", $karyawanFresh->nama_lengkap . " mengajukan WFH " . $request->tgl_wfh, '/presensi/datawfh');
+                }
+            } else {
+                // Direktur langsung ke admin - notify all admin users
+                $admins = \App\Models\User::role("administrator")->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new WfhSubmitted((object)$wfh, $karyawanFresh));
+                }
+            }
+
+            DB::commit();
+            cache()->forget("pending_wfh_count");
+            cache()->forget("pending_wfh_admin_count");
+            return redirect("/presensi/wfh")->with("success", "Pengajuan WFH berhasil! Menunggu persetujuan.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("storewfh failed: " . $e->getMessage());
+            return redirect()->back()->with("error", "Gagal mengajukan WFH. Silakan coba lagi.")->withInput();
         }
     }
     
@@ -603,45 +708,368 @@ class PresensiController extends Controller
     
     public function deletewfh(int $id)
     {
-        $nik = Auth::guard('karyawan')->user()->nik;
+        $nik = Auth::guard("karyawan")->user()->nik;
     
-        $wfh = DB::table('wfh')
-            ->where('id', $id)
-            ->where('nik', $nik)
+        $wfh = DB::table("wfh")
+            ->where("id", $id)
+            ->where("nik", $nik)
             ->first();
     
         if (!$wfh) {
-    
-            return redirect()->back()->with(
-                'error',
-                'Data tidak ditemukan!'
-            );
-    
+            return redirect()->back()->with("error", "Data tidak ditemukan!");
+        }
+
+        // Hanya bisa hapus jika masih pending
+        if (!in_array($wfh->status, [WfhStatus::PendingAtasan->value, WfhStatus::PendingAdmin->value])) {
+            return redirect()->back()->with("error", "WFH yang sudah disetujui/ditolak tidak bisa dihapus!");
         }
     
-        // HAPUS FILE FORM
-        Storage::delete('public/uploads/wfh/' . $wfh->file_form);
+        WfhService::deleteWfhFiles($wfh);
     
-        // HAPUS FILE LAPORAN
-        Storage::delete('public/uploads/wfh/' . $wfh->file_laporan);
+        DB::table("wfh")->where("id", $id)->delete();
     
-        // HAPUS DATA DATABASE
-        DB::table('wfh')
-            ->where('id', $id)
-            ->delete();
-    
-        return redirect()->back()->with(
-            'success',
-            'Data WFH berhasil dihapus!'
-        );
+        return redirect()->back()->with("success", "Data WFH berhasil dihapus!");
     }
 
+    // =====================================================
+    // APPROVAL ATASAN
+    // =====================================================
+    public function approveWfhAtasan(Request $request, int $id)
+    {
+        $karyawan = Auth::guard("karyawan")->user();
+        $wfh = DB::table("wfh")->where("id", $id)->first();
+        if (!$wfh) return redirect()->back()->with("error", "Data tidak ditemukan");
+        if ($wfh->atasan_nik !== $karyawan->nik) return redirect()->back()->with("error", "Anda bukan atasan untuk pengajuan ini");
+        if ($wfh->status !== WfhStatus::PendingAtasan->value) return redirect()->back()->with("error", "Status tidak valid");
 
+        DB::table("wfh")->where("id", $id)->update([
+            "atasan_status" => "approved",
+            "status" => WfhStatus::PendingAdmin->value,
+            ]);
+
+        // Notifikasi ke pengaju
+        $pengaju = \App\Models\Karyawan::where("nik", $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new WfhApprovedByAtasan((object)$wfh, $karyawan));
+            WfhService::sendWebPush($wfh->nik, "WFH Disetujui", "WFH " . $wfh->tgl_wfh . " disetujui, menunggu persetujuan selanjutnya");
+        }
+        // Notifikasi ke admin
+        $admins = \App\Models\User::role("administrator")->get();
+        foreach ($admins as $admin) $admin->notify(new WfhApprovedByAtasan((object)$wfh, $karyawan));
+        cache()->forget("pending_wfh_count"); cache()->forget("pending_wfh_admin_count");
+
+        return redirect()->back()->with("success", "WFH disetujui, diteruskan ke Admin");
+    }
+
+    public function rejectWfhAtasan(Request $request, int $id)
+    {
+        $request->validate(["rejected_reason" => "required|string|min:5|max:500"]);
+        $karyawan = Auth::guard("karyawan")->user();
+        $wfh = DB::table("wfh")->where("id", $id)->first();
+        if (!$wfh || $wfh->atasan_nik !== $karyawan->nik) return redirect()->back()->with("error", "Akses ditolak");
+        if ($wfh->status !== WfhStatus::PendingAtasan->value) return redirect()->back()->with("error", "Status tidak valid untuk penolakan");
+
+        DB::table("wfh")->where("id", $id)->update([
+            "atasan_status" => "rejected",
+            "status" => WfhStatus::Rejected->value,
+            "rejected_reason" => $request->rejected_reason,
+            ]);
+        $pengaju = \App\Models\Karyawan::where("nik", $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new WfhRejected((object)$wfh, $request->rejected_reason));
+            WfhService::sendWebPush($wfh->nik, "WFH Ditolak", "WFH " . $wfh->tgl_wfh . " ditolak: " . $request->rejected_reason);
+        }
+        cache()->forget("pending_wfh_count");
+        return redirect()->back()->with("success", "WFH ditolak");
+    }
+
+    // =====================================================
+    // APPROVAL ADMIN
+    // =====================================================
+    public function approveWfhAdmin(int $id)
+    {
+        $user = Auth::guard('user')->user();
+        $wfh = DB::table("wfh")->where("id", $id)->first();
+        if (!$wfh) return redirect()->back()->with("error", "Data tidak ditemukan");
+        if ($wfh->status !== WfhStatus::PendingAdmin->value) return redirect()->back()->with("error", "Status tidak valid untuk persetujuan");
+        if ($wfh->admin_status !== 'pending') return redirect()->back()->with("error", "WFH ini sudah diproses");
+
+        DB::table("wfh")->where("id", $id)->update([
+            "admin_status" => "approved",
+            "status" => WfhStatus::Approved->value,
+            "approved_at" => now(),
+            ]);
+        $pengaju = \App\Models\Karyawan::where("nik", $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new WfhApproved((object)$wfh));
+            WfhService::sendWebPush($wfh->nik, "WFH Disetujui Admin", "WFH " . $wfh->tgl_wfh . " disetujui! Silakan input Laporan.", '/presensi/wfh/' . $id . '/laporan');
+        }
+        cache()->forget("pending_wfh_count"); cache()->forget("pending_wfh_admin_count");
+        return redirect()->back()->with("success", "WFH disetujui Admin. Karyawan bisa input laporan.");
+    }
+
+    public function rejectWfhAdmin(Request $request, int $id)
+    {
+        $request->validate(["rejected_reason" => "required|string|min:5|max:500"]);
+        $user = Auth::guard('user')->user();
+        $wfh = DB::table("wfh")->where("id", $id)->first();
+        if (!$wfh) return redirect()->back()->with("error", "Data tidak ditemukan");
+        if ($wfh->status !== WfhStatus::PendingAdmin->value) return redirect()->back()->with("error", "Status tidak valid untuk penolakan");
+        if ($wfh->admin_status !== 'pending') return redirect()->back()->with("error", "WFH ini sudah diproses");
+
+        DB::table("wfh")->where("id", $id)->update([
+            "admin_status" => "rejected",
+            "status" => WfhStatus::Rejected->value,
+            "rejected_reason" => $request->rejected_reason,
+            ]);
+        $pengaju = \App\Models\Karyawan::where("nik", $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new WfhRejected((object)$wfh, $request->rejected_reason));
+            WfhService::sendWebPush($wfh->nik, "WFH Ditolak Admin", "WFH " . $wfh->tgl_wfh . " ditolak Admin");
+        }
+        cache()->forget("pending_wfh_count"); cache()->forget("pending_wfh_admin_count");
+        return redirect()->back()->with("success", "WFH ditolak Admin");
+    }
+
+    // =====================================================
+    // LAPORAN WFH (setelah approved) - Full workflow
+    // =====================================================
+    public function buatLaporanWfh(int $id)
+    {
+        $nik = Auth::guard("karyawan")->user()->nik;
+        $wfh = DB::table("wfh")->where("id", $id)->where("nik", $nik)->where("status", WfhStatus::Approved->value)->first();
+        if (!$wfh) abort(400, "Laporan hanya bisa diisi setelah WFH disetujui");
+
+        // STRICT: Laporan hanya bisa diupload di TANGGAL WFH itu sendiri
+        $tglWfh = $wfh->tgl_wfh instanceof \Carbon\Carbon ? $wfh->tgl_wfh->format('Y-m-d') : date('Y-m-d', strtotime($wfh->tgl_wfh));
+        $hariIni = date('Y-m-d');
+        if ($tglWfh !== $hariIni) {
+            return redirect()->back()->with('error', 'Laporan hanya bisa diupload pada tanggal WFH (' . date('d M Y', strtotime($tglWfh)) . '). Hari ini: ' . date('d M Y') . '.');
+        }
+
+        // Cek apakah sudah absen masuk hari ini
+        $presensiToday = DB::table('presensi')
+            ->where('nik', $nik)
+            ->where('tgl_presensi', $hariIni)
+            ->first();
+        if (!$presensiToday || !$presensiToday->jam_in) {
+            return redirect()->back()->with('error', 'Anda belum melakukan absen masuk hari ini. Silakan absen masuk terlebih dahulu.');
+        }
+
+        // Cek apakah sudah 7 jam sejak jam_in
+        $jamMasuk = \Carbon\Carbon::parse($presensiToday->jam_in);
+        $selisihJam = $jamMasuk->diffInHours(now());
+        if ($selisihJam < 7) {
+            $sisa = ceil(7 - $selisihJam);
+            return redirect()->back()->with('error', 'Laporan hanya bisa diisi setelah 7 jam absen masuk. Sisa waktu: ' . $sisa . ' jam.');
+        }
+
+        return view("presensi.buat-laporan-wfh", compact("wfh"));
+    }
+
+    public function storeLaporanWfh(Request $request, int $id)
+    {
+        $request->validate([
+            "laporan_deskripsi" => "required|string|min:10|max:3000",
+            "laporan_images" => "required|array|min:2|max:5",
+            "laporan_images.*" => "required|image|mimes:jpg,jpeg,png|max:4096",
+        ]);
+        $nik = Auth::guard("karyawan")->user()->nik;
+        $wfh = DB::table("wfh")->where("id", $id)->where("nik", $nik)->where("status", WfhStatus::Approved->value)->first();
+        if (!$wfh) return redirect()->back()->with("error", "Akses ditolak");
+
+        // Determine initial laporan status
+        $karyawan = \App\Models\Karyawan::where('nik', $nik)->first();
+        if (!$karyawan) return redirect()->back()->with("error", "Data karyawan tidak ditemukan");
+
+        $presensiToday = DB::table('presensi')->where('nik', $nik)->where('tgl_presensi', date('Y-m-d'))->first();
+
+        DB::beginTransaction();
+        try {
+            // Upload images
+            $imagePaths = [];
+            if ($request->hasFile('laporan_images')) {
+                foreach ($request->file('laporan_images') as $idx => $file) {
+                    $nama = Str::uuid() . '-laporan-' . ($idx + 1) . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('wfh/laporan', $nama, 'public');
+                    $imagePaths[] = $path;
+                }
+            }
+
+            $initialLaporan = WfhService::initialLaporanStatus($karyawan);
+
+            // Atasan for laporan
+            $laporanAtasanNik = $karyawan->atasan_nik;
+            if ($karyawan->role_approved === 'Direktur' || empty($karyawan->role_approved) || empty($laporanAtasanNik)) {
+                $laporanAtasanNik = null;
+            }
+
+            // Generate PDF Laporan
+            $unit = $karyawan->unit;
+            $perusahaan = DB::table('unitperusahaan')->where('unit', $unit)->value('perusahaan') ?? '-';
+            $weekdayMap = ['Sunday'=>'Minggu','Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu','Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu'];
+            $hariTanggal = $weekdayMap[now()->format('l')] . ', ' . now()->format('d F Y');
+
+            $pdfData = [
+                'nik' => $nik,
+                'nama_lengkap' => $karyawan->nama_lengkap,
+                'jabatan' => $jabatan,
+                'posisi' => $karyawan->posisi,
+                'unit' => $unit,
+                'perusahaan' => $perusahaan,
+                'tgl_wfh' => $wfh->tgl_wfh,
+                'live_location' => $presensiToday->lokasi_in ?? '-',
+                'keterangan' => $wfh->keterangan ?? '-',
+                'laporan_deskripsi' => $request->laporan_deskripsi,
+                'laporan_images' => $imagePaths,
+                'hariTanggal' => $hariTanggal,
+            ];
+
+            $stempelPath = WfhService::getStempelPath();
+
+            $pdf = Pdf::loadView('presensi.laporan-pdf', array_merge($pdfData, ['stempelPath' => $stempelPath]));
+            $pdf->setPaper('A4', 'portrait');
+            $pdfFilename = Str::uuid() . '-laporan-' . Str::slug($karyawan->nama_lengkap) . '.pdf';
+            $pdfPath = 'wfh/laporan/' . $pdfFilename;
+            Storage::disk('public')->put($pdfPath, $pdf->output());
+
+            DB::table('wfh')->where('id', $id)->update([
+                'laporan_deskripsi' => $request->laporan_deskripsi,
+                'laporan_images' => json_encode($imagePaths),
+                'laporan_file' => $pdfPath,
+                'laporan_atasan_nik' => $laporanAtasanNik,
+                'laporan_status' => $initialLaporan['laporan_status'],
+                'laporan_atasan_status' => $initialLaporan['laporan_atasan_status'],
+                'laporan_admin_status' => $initialLaporan['laporan_admin_status'],
+            ]);
+
+            DB::commit();
+
+            // Notify atasan or admin (after commit)
+            $wfhUpdated = DB::table('wfh')->where('id', $id)->first();
+            if ($laporanAtasanNik) {
+                $atasanUser = \App\Models\Karyawan::where('nik', $laporanAtasanNik)->first();
+                if ($atasanUser) {
+                    $atasanUser->notify(new \App\Notifications\WfhSubmitted((object)$wfhUpdated, $karyawan));
+                }
+            } else {
+                $admins = \App\Models\User::role('administrator')->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\WfhSubmitted((object)$wfhUpdated, $karyawan));
+                }
+            }
+
+            return redirect('/presensi/wfh')->with('success', 'Laporan WFH berhasil dikirim! Menunggu persetujuan atasan dan administrator.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("storeLaporanWfh failed: " . $e->getMessage());
+            return redirect()->back()->with("error", "Gagal mengirim laporan WFH. Silakan coba lagi.")->withInput();
+        }
+    }
+
+    // =====================================================
+    // APPROVAL LAPORAN ATASAN
+    // =====================================================
+    public function approveLaporanAtasan(Request $request, int $id)
+    {
+        $karyawan = Auth::guard('karyawan')->user();
+        $wfh = DB::table('wfh')->where('id', $id)->first();
+        if (!$wfh) return redirect()->back()->with('error', 'Data tidak ditemukan');
+        if ($wfh->laporan_atasan_nik !== $karyawan->nik) return redirect()->back()->with('error', 'Anda bukan atasan untuk laporan ini');
+        if ($wfh->laporan_status !== 'pending_atasan') return redirect()->back()->with('error', 'Status laporan tidak valid');
+
+        DB::table('wfh')->where('id', $id)->update([
+            'laporan_atasan_status' => 'approved',
+            'laporan_status' => 'pending_admin',
+        ]);
+
+        // Notify pengaju
+        $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new \App\Notifications\WfhApprovedByAtasan((object)$wfh, $karyawan));
+        }
+        // Notify admin
+        $admins = \App\Models\User::role('administrator')->get();
+        foreach ($admins as $admin) $admin->notify(new \App\Notifications\WfhSubmitted((object)$wfh, $pengaju));
+        cache()->forget('pending_laporan_admin_count');
+
+        return redirect()->back()->with('success', 'Laporan disetujui atasan, diteruskan ke Admin');
+    }
+
+    public function rejectLaporanAtasan(Request $request, int $id)
+    {
+        $request->validate(['rejected_reason' => 'required|string|min:5|max:500']);
+        $karyawan = Auth::guard('karyawan')->user();
+        $wfh = DB::table('wfh')->where('id', $id)->first();
+        if (!$wfh || $wfh->laporan_atasan_nik !== $karyawan->nik) return redirect()->back()->with('error', 'Akses ditolak');
+        if ($wfh->laporan_status !== 'pending_atasan') return redirect()->back()->with('error', 'Status laporan tidak valid untuk penolakan');
+
+        DB::table('wfh')->where('id', $id)->update([
+            'laporan_atasan_status' => 'rejected',
+            'laporan_status' => 'rejected',
+            'laporan_rejected_reason' => $request->rejected_reason,
+        ]);
+        $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new \App\Notifications\WfhRejected((object)$wfh, $request->rejected_reason));
+        }
+        cache()->forget('pending_laporan_admin_count');
+        return redirect()->back()->with('success', 'Laporan ditolak atasan');
+    }
+
+    // =====================================================
+    // APPROVAL LAPORAN ADMIN
+    // =====================================================
+    public function approveLaporanAdmin(int $id)
+    {
+        $user = Auth::guard('user')->user();
+        $wfh = DB::table('wfh')->where('id', $id)->first();
+        if (!$wfh) return redirect()->back()->with('error', 'Data tidak ditemukan');
+        if ($wfh->laporan_status !== 'pending_admin') return redirect()->back()->with('error', 'Status laporan tidak valid untuk persetujuan');
+        if ($wfh->laporan_admin_status !== 'pending') return redirect()->back()->with('error', 'Laporan ini sudah diproses');
+
+        DB::table('wfh')->where('id', $id)->update([
+            'laporan_admin_status' => 'approved',
+            'laporan_status' => 'approved',
+            'laporan_approved_at' => now(),
+        ]);
+        $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new \App\Notifications\WfhApproved((object)$wfh));
+            WfhService::sendWebPush($wfh->nik, "Laporan Disetujui Admin", "Laporan WFH " . $wfh->tgl_wfh . " telah disetujui.");
+        }
+        cache()->forget('pending_laporan_admin_count');
+        return redirect()->back()->with('success', 'Laporan disetujui Admin');
+    }
+
+    public function rejectLaporanAdmin(Request $request, int $id)
+    {
+        $request->validate(['rejected_reason' => 'required|string|min:5|max:500']);
+        $user = Auth::guard('user')->user();
+        $wfh = DB::table('wfh')->where('id', $id)->first();
+        if (!$wfh) return redirect()->back()->with('error', 'Data tidak ditemukan');
+        if ($wfh->laporan_status !== 'pending_admin') return redirect()->back()->with('error', 'Status laporan tidak valid untuk penolakan');
+        if ($wfh->laporan_admin_status !== 'pending') return redirect()->back()->with('error', 'Laporan ini sudah diproses');
+
+        DB::table('wfh')->where('id', $id)->update([
+            'laporan_admin_status' => 'rejected',
+            'laporan_status' => 'rejected',
+            'laporan_rejected_reason' => $request->rejected_reason,
+        ]);
+        $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
+        if ($pengaju) {
+            $pengaju->notify(new \App\Notifications\WfhRejected((object)$wfh, $request->rejected_reason));
+            WfhService::sendWebPush($wfh->nik, "Laporan Ditolak Admin", "Laporan WFH " . $wfh->tgl_wfh . " ditolak Admin");
+        }
+        cache()->forget('pending_laporan_admin_count');
+        return redirect()->back()->with('success', 'Laporan ditolak Admin');
+    }
 
 
     // =====================================================
     // ADMIN - MONITORING PRESENSI
     // =====================================================
+
 
     public function monitoring()
     {
@@ -894,13 +1322,14 @@ class PresensiController extends Controller
     
         $wfh = DB::table('wfh')
             ->where('nik', $nik)
+            ->where('status', 'approved')
             ->whereMonth('tgl_wfh', $bulan)
             ->whereYear('tgl_wfh', $tahun)
             ->get()
             ->keyBy('tgl_wfh');
     
         // =====================================================
-        // HITUNG TOTAL WFH
+        // HITUNG TOTAL WFH (hanya yang approved)
         // =====================================================
     
         $totalWfh = $wfh->count();
@@ -1108,44 +1537,35 @@ class PresensiController extends Controller
     {
         $nama_karyawan = $request->nama_karyawan;
         $unit = $request->unit;
-        $tanggal = $request->tanggal ?? date('Y-m-d');
+        $tanggal = $request->tanggal;
+        $status = $request->status;
     
         $query = DB::table('wfh')
             ->join('karyawan', 'wfh.nik', '=', 'karyawan.nik')
-            ->join('unitperusahaan', 'karyawan.unit', '=', 'unitperusahaan.unit');
+            ->join('unitperusahaan', 'karyawan.unit', '=', 'unitperusahaan.unit')
+            ->leftJoin('karyawan as atasan', 'wfh.atasan_nik', '=', 'atasan.nik')
+            ->select('wfh.*', 'karyawan.nama_lengkap', 'karyawan.jabatan', 'karyawan.posisi', 'karyawan.unit', 'unitperusahaan.perusahaan', 'atasan.nama_lengkap as atasan_nama', 'atasan.jabatan as atasan_jabatan');
     
         if (!empty($nama_karyawan)) {
-            $query->where(
-                'karyawan.nama_lengkap',
-                'like',
-                '%' . $nama_karyawan . '%'
-            );
+            $query->where('karyawan.nama_lengkap', 'like', '%' . $nama_karyawan . '%');
         }
-    
         if (!empty($unit)) {
-            $query->where(
-                'unitperusahaan.unit',
-                $unit
-            );
+            $query->where('unitperusahaan.unit', $unit);
         }
-    
         if (!empty($tanggal)) {
-            $query->where(
-                'wfh.tgl_wfh',
-                $tanggal
-            );
+            $query->where('wfh.tgl_wfh', $tanggal);
+        }
+        if (!empty($status)) {
+            $query->where('wfh.status', $status);
         }
     
-        $datawfh = $query
-            ->orderBy('tgl_wfh', 'desc')
-            ->paginate(5);
-    
+        $datawfh = $query->orderBy('wfh.tgl_wfh', 'desc')->paginate(5)->withQueryString();
         $unitperusahaan = DB::table('unitperusahaan')->get();
     
-        return view(
-            'presensi.datawfh',
-            compact('datawfh', 'unitperusahaan')
-        );
+        $pendingWfhAdmin = DB::table('wfh')->where('status', 'pending_admin')->count();
+        $pendingLaporanAdmin = DB::table('wfh')->where('laporan_status', 'pending_admin')->count();
+
+        return view('presensi.datawfh', compact('datawfh', 'unitperusahaan', 'pendingWfhAdmin', 'pendingLaporanAdmin'));
     }
     
     // =====================================================
@@ -1154,27 +1574,14 @@ class PresensiController extends Controller
     
     public function deletewfhadmin(int $id)
     {
-        $wfh = DB::table('wfh')
-            ->where('id', $id)
-            ->first();
-    
-        if ($wfh) {
-    
-            // HAPUS FILE FORM
-            Storage::delete('public/uploads/wfh/' . $wfh->file_form);
-    
-            // HAPUS FILE LAPORAN
-            Storage::delete('public/uploads/wfh/' . $wfh->file_laporan);
-    
-            // HAPUS DATABASE
-            DB::table('wfh')
-                ->where('id', $id)
-                ->delete();
-        }
-    
-        return redirect()->back()->with(
-            'success',
-            'Data WFH berhasil dihapus!'
-        );
+        $wfh = DB::table('wfh')->where('id', $id)->first();
+        if (!$wfh) return redirect()->back()->with('error', 'Data tidak ditemukan');
+
+        WfhService::deleteWfhFiles($wfh);
+        DB::table('wfh')->where('id', $id)->delete();
+        cache()->forget('pending_wfh_count');
+        cache()->forget('pending_wfh_admin_count');
+        cache()->forget('pending_laporan_admin_count');
+        return redirect()->back()->with('success', 'Data WFH berhasil dihapus!');
     }
 }

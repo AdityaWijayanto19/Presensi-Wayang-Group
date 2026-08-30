@@ -41,7 +41,7 @@
     </a>
 
     <a href="/presensi/wfh"
-        class="item {{ request()->is('presensi/wfh') || request()->is('presensi/buatwfh') ? 'active disabled' : '' }}">
+        class="item {{ request()->is('presensi/wfh') || request()->is('presensi/buatwfh') || request()->is('presensi/wfh/*/laporan') ? 'active disabled' : '' }}">
         <div class="col">
             <ion-icon name="save"></ion-icon>
             <strong>WFH</strong>

@@ -21,7 +21,10 @@ class Karyawan extends Authenticatable
     protected $fillable = [
         'nik',
         'nama_lengkap',
-        'jabatan',
+        'jabatan',      // hierarchy level (Intern/Staff/SPV/Manager/GM/Direktur)
+        'posisi',       // job title (Web Developer, Staff Accounting, etc)
+        'role_approved', // Role Approved dropdown (Staff/Manager/GM/Direktur)
+        'atasan_nik',
         'unit',
         'no_hp',
         'foto',
@@ -40,6 +43,16 @@ class Karyawan extends Authenticatable
     public function unitperusahaan(): BelongsTo
     {
         return $this->belongsTo(Unitperusahaan::class, 'unit', 'unit');
+    }
+
+    public function atasan(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'atasan_nik', 'nik');
+    }
+
+    public function bawahan(): HasMany
+    {
+        return $this->hasMany(self::class, 'atasan_nik', 'nik');
     }
 
     public function presensi(): HasMany
