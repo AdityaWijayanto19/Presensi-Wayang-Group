@@ -1,17 +1,22 @@
 #!/bin/bash
 # ============================================================
-# deploy.sh - Presensi Digital Production Deployment Script
-# Untuk Hostinger VPS / Shared Hosting
+# deploy.sh - Presensi Digital Production Deployment
+# Hostinger Shared Hosting (CloudLinux)
 # ============================================================
 # Cara pakai:
 #   chmod +x deploy.sh
 #   ./deploy.sh
+#
+# CATATAN:
+#   - .env harus dibuat/diisi MANUAL sebelum jalankan script ini
+#   - Frontend assets (public/build) harus di-upload manual dari local
+#     (Node.js/npm tidak tersedia di shared hosting)
 # ============================================================
 
 set -e
 
 # ============================================================
-# CONFIG - Sesuaikan jika perlu
+# CONFIG
 # ============================================================
 PHP_BIN="/opt/alt/php84/usr/bin/php"
 
@@ -27,7 +32,7 @@ NC='\033[0m'
 APP_DIR="$(pwd)"
 
 # ============================================================
-# HELPER FUNCTIONS
+# HELPER
 # ============================================================
 info()    { echo -e "${CYAN}[INFO]${NC} $1"; }
 success() { echo -e "${GREEN}[OK]${NC} $1"; }
@@ -54,11 +59,7 @@ if [ -f "$PHP_BIN" ]; then
     success "PHP $PHP_VERSION found"
 else
     error "PHP binary not found at $PHP_BIN"
-    echo "Coba cari PHP manual:"
-    echo "  which php"
-    echo "  ls /opt/alt/php*/usr/bin/php"
-    echo ""
-    echo "Edit variable PHP_BIN di deploy.sh sesuai path PHP kamu."
+    echo "Coba cari: ls /opt/alt/php*/usr/bin/php"
     exit 1
 fi
 
@@ -66,33 +67,23 @@ fi
 # 1. CHECK .ENV FILE
 # ============================================================
 if [ ! -f .env ]; then
-    warn ".env file tidak ditemukan!"
-    info "Membuat .env dari .env.example..."
-    cp .env.example .env
-    success ".env dibuat dari .env.example"
-
-    info "Generating APP_KEY..."
-    NEW_KEY=$(openssl rand -base64 32)
-    sed -i "s/^APP_KEY=.*/APP_KEY=base64:$NEW_KEY/" .env
-    success "APP_KEY generated"
-
+    error ".env file tidak ditemukan!"
     echo ""
-    echo -e "${YELLOW}============================================${NC}"
-    echo -e "${YELLOW}  EDIT .env TERLEBIH DAHULU!                ${NC}"
-    echo -e "${YELLOW}============================================${NC}"
+    echo "Buat .env manual:"
+    echo "  cp .env.example .env"
+    echo "  nano .env"
     echo ""
-    echo "Jalankan: nano .env"
+    echo "Isi minimal:"
+    echo "  APP_ENV=production"
+    echo "  APP_DEBUG=false"
+    echo "  APP_URL=https://test-presensi.wayang.group"
+    echo "  APP_KEY=base64:..."
+    echo "  DB_HOST=localhost"
+    echo "  DB_DATABASE=..."
+    echo "  DB_USERNAME=..."
+    echo "  DB_PASSWORD=..."
     echo ""
-    echo "Yang harus diisi:"
-    echo "  APP_ENV        = production"
-    echo "  APP_DEBUG      = false"
-    echo "  APP_URL        = https://test-presensi.wayang.group"
-    echo "  DB_HOST        = localhost"
-    echo "  DB_DATABASE    = nama_database dari hPanel"
-    echo "  DB_USERNAME    = username_database dari hPanel"
-    echo "  DB_PASSWORD    = password_database dari hPanel"
-    echo ""
-    echo "Setelah edit, jalankan lagi: ./deploy.sh"
+    echo "Setelah edit .env, jalankan lagi: ./deploy.sh"
     exit 1
 fi
 
@@ -100,26 +91,12 @@ fi
 info "Checking APP_KEY..."
 KEY_VALUE=$(grep "^APP_KEY=" .env | cut -d'=' -f2)
 if [ -z "$KEY_VALUE" ]; then
-    info "APP_KEY kosong, generating..."
-    NEW_KEY=$(openssl rand -base64 32)
-    sed -i "s/^APP_KEY=.*/APP_KEY=base64:$NEW_KEY/" .env
-    success "APP_KEY generated"
+    warn "APP_KEY kosong! Generate manual:"
+    echo "  /opt/alt/php84/usr/bin/php artisan key:generate --force"
+    echo "  Atau: sed -i 's/^APP_KEY=.*/APP_KEY=base64:\$(openssl rand -base64 32)/' .env"
+    exit 1
 else
     success "APP_KEY sudah ada"
-fi
-
-# Cek APP_ENV
-APP_ENV=$(grep "^APP_ENV=" .env | cut -d'=' -f2)
-if [ "$APP_ENV" = "local" ]; then
-    warn "APP_ENV masih 'local'! Seharusnya 'production'"
-    warn "Edit .env: APP_ENV=production"
-fi
-
-# Cek APP_DEBUG
-APP_DEBUG=$(grep "^APP_DEBUG=" .env | cut -d'=' -f2)
-if [ "$APP_DEBUG" = "true" ]; then
-    warn "APP_DEBUG masih 'true'! Seharusnya 'false' untuk production"
-    warn "Edit .env: APP_DEBUG=false"
 fi
 
 # ============================================================
@@ -140,46 +117,52 @@ else
 fi
 
 # ============================================================
-# 3. NPM INSTALL & BUILD ASSETS (Vite)
+# 3. ROOT .HTACCESS (Rewrite ke public/)
 # ============================================================
-if [ -f package.json ]; then
-    info "Installing NPM dependencies..."
-    npm install --production=false 2>/dev/null
-    success "NPM install selesai"
-
-    info "Building Vite assets..."
-    npm run build
-    success "Assets built ke public/build/"
-
-    # Hapus hot file (Vite dev server flag)
-    if [ -f public/hot ]; then
-        rm -f public/hot
-        success "File public/hot dihapus"
-    fi
+if [ ! -f .htaccess ]; then
+    info "Membuat root .htaccess (rewrite ke public/)..."
+    cat > .htaccess << 'EOF'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+EOF
+    success "Root .htaccess dibuat"
 else
-    warn "package.json tidak ditemukan, skip npm build"
+    # Cek apakah sudah rewrite ke public/
+    if grep -q "RewriteRule.*public/" .htaccess; then
+        success "Root .htaccess sudah benar (rewrite ke public/)"
+    else
+        warn "Root .htaccess bukan rewrite ke public/!"
+        echo "Isi .htaccess sekarang:"
+        cat .htaccess
+        echo ""
+        read -p "Ganti dengan rewrite ke public/? (y/n): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            cp .htaccess .htaccess.bak
+            cat > .htaccess << 'EOF'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+EOF
+            success "Root .htaccess diganti"
+        fi
+    fi
 fi
 
 # ============================================================
-# 4. RUN MIGRATIONS
+# 4. HAPUS ROOT INDEX.PHP (jika ada)
 # ============================================================
-echo ""
-read -p "Jalankan migration sekarang? (y/n): " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    info "Running database migrations..."
-    $PHP_BIN artisan migrate --force
-    success "Migrations selesai"
-
-    read -p "Jalankan seeder juga? (y/n): " -n 1 -r
+if [ -f index.php ]; then
+    warn "Root index.php ditemukan! Ini tidak diperlukan (sudah ada di public/)."
+    read -p "Hapus index.php dari root? (y/n): " -n 1 -r
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        info "Running seeders..."
-        $PHP_BIN artisan db:seed --force
-        success "Seeders selesai"
+        rm index.php
+        success "Root index.php dihapus"
     fi
-else
-    warn "Migration dilewati! Jalankan manual: php artisan migrate --force"
 fi
 
 # ============================================================
@@ -235,8 +218,7 @@ echo "Project: $APP_DIR"
 echo ""
 echo "Yang sudah dilakukan:"
 echo "  [x] Composer install (--no-dev)"
-echo "  [x] NPM build assets"
-echo "  [x] APP_KEY checked"
+echo "  [x] Root .htaccess (rewrite ke public/)"
 echo "  [x] Storage symlink created"
 echo "  [x] Folder permissions set (775)"
 echo "  [x] Config cached"
@@ -250,22 +232,19 @@ echo -e "${YELLOW}============================================${NC}"
 echo ""
 echo "1. SETUP CRON JOB (via hPanel):"
 echo "   Login hPanel > VPS > Cron Jobs > Create New"
-echo ""
 echo "   Command:"
 echo "   cd $APP_DIR && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
-echo ""
 echo "   Schedule: Semua field isi * (setiap menit)"
 echo ""
-echo "2. INSTALL SSL (jika belum):"
-echo "   hPanel > SSL > Let's Encrypt > Install"
+echo "2. UPLOAD FRONTEND ASSETS (jika ada perubahan CSS/JS):"
+echo "   Jalankan dari local (Laragon):"
+echo "   .\\deploy-assets.ps1"
 echo ""
-echo "3. TRANSFER USER UPLOADS (jika ada data lama):"
-echo "   scp -r local-uploads/ user@server:$APP_DIR/storage/app/public/"
-echo ""
-echo "4. CLEAR PUSH SUBSCRIPTIONS (karena VAPID keys baru):"
+echo "3. CLEAR PUSH SUBSCRIPTIONS (karena VAPID keys baru):"
 echo "   $PHP_BIN artisan tinker"
 echo "   >>> DB::table('push_subscriptions')->truncate();"
 echo ""
-echo "5. TEST:"
+echo "4. TEST:"
 echo "   curl -I https://test-presensi.wayang.group"
+echo "   Buka di browser: https://test-presensi.wayang.group"
 echo ""

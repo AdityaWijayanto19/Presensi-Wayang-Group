@@ -27,4 +27,3 @@ yarn-error.log
 /docs/*
 /public/storage_backup
 composer.phar
-npm-debug.log
