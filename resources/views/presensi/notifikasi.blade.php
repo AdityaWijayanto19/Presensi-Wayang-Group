@@ -16,37 +16,49 @@
     <div class="flex mt-[60px] pb-6">
         <div class="w-full px-3">
 
-            <!-- Card Wrapper Container -->
-            <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm divide-y divide-[#f5f0eb] overflow-hidden">
-                @forelse($notifications ?? [] as $n)
-                    <div
-                        class="p-3.5 hover:bg-[#fdf8f4] transition-colors duration-150 flex items-start justify-between gap-3 {{ is_null($n->read_at) ? 'bg-amber-50/50' : '' }}">
-                        <div class="flex-1">
-                            <!-- Pesan Notifikasi -->
-                            <div class="text-[13px] font-medium text-[#1c1917] leading-snug">
-                                {{ $n->data['message'] ?? 'Notifikasi' }}
-                            </div>
-                            <!-- Waktu -->
-                            <div class="text-[11px] text-[#a8a29e] mt-1.5 flex items-center gap-1">
-                                <ion-icon name="time-outline" class="text-[12px]"></ion-icon>
-                                <span>{{ $n->created_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
+            @forelse($grouped ?? [] as $group)
+                {{-- Date Header --}}
+                <div class="flex items-center gap-3 mt-5 mb-3 px-1">
+                    <div class="flex-1 h-px bg-[#e7e5e4]"></div>
+                    <span class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase whitespace-nowrap">
+                        <ion-icon name="calendar-outline" class="text-[12px] align-middle"></ion-icon>
+                        {{ $group['label'] }}
+                    </span>
+                    <div class="flex-1 h-px bg-[#e7e5e4]"></div>
+                </div>
 
-                        <!-- Indikator Belum Dibaca -->
-                        @if (is_null($n->read_at))
-                            <span class="w-2 h-2 rounded-full bg-amber-500 mt-1 flex-shrink-0"></span>
-                        @endif
-                    </div>
-                @empty
-                    <!-- Tampilan Jika Kosong -->
-                    <div class="p-8 text-center">
-                        <ion-icon name="notifications-off-outline" class="text-4xl text-[#a8a29e] mb-2"></ion-icon>
-                        <div class="text-[13px] font-medium text-[#1c1917]">Belum ada notifikasi</div>
-                        <p class="text-[11px] text-[#a8a29e] mt-1">Semua pemberitahuan terbaru akan muncul di sini.</p>
-                    </div>
-                @endforelse
-            </div>
+                {{-- Notification Items --}}
+                <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm divide-y divide-[#f5f0eb] overflow-hidden">
+                    @foreach($group['items'] as $n)
+                        <div
+                            class="p-3.5 hover:bg-[#fdf8f4] transition-colors duration-150 flex items-start justify-between gap-3 {{ is_null($n->read_at) ? 'bg-amber-50/50' : '' }}">
+                            <div class="flex-1">
+                                <!-- Pesan Notifikasi -->
+                                <div class="text-[13px] font-medium text-[#1c1917] leading-snug">
+                                    {{ $n->data['message'] ?? 'Notifikasi' }}
+                                </div>
+                                <!-- Waktu -->
+                                <div class="text-[11px] text-[#a8a29e] mt-1.5 flex items-center gap-1">
+                                    <ion-icon name="time-outline" class="text-[12px]"></ion-icon>
+                                    <span>{{ $n->created_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Indikator Belum Dibaca -->
+                            @if (is_null($n->read_at))
+                                <span class="w-2 h-2 rounded-full bg-amber-500 mt-1 flex-shrink-0"></span>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @empty
+                <!-- Tampilan Jika Kosong -->
+                <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm p-8 mt-6 text-center">
+                    <ion-icon name="notifications-off-outline" class="text-4xl text-[#a8a29e] mb-2"></ion-icon>
+                    <div class="text-[13px] font-medium text-[#1c1917]">Belum ada notifikasi</div>
+                    <p class="text-[11px] text-[#a8a29e] mt-1">Semua pemberitahuan terbaru akan muncul di sini.</p>
+                </div>
+            @endforelse
 
         </div>
     </div>

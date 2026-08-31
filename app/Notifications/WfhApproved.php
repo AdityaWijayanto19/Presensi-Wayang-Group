@@ -22,7 +22,7 @@ class WfhApproved extends Notification
             'type' => 'wfh_approved',
             'wfh_id' => $this->wfh->id,
             'tgl_wfh' => $this->wfh->tgl_wfh,
-            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' telah disetujui. Silakan input Laporan WFH.',
+            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' telah disetujui. Silakan input Laporan WFH Setelah 7 jam kerja.',
         ];
     }
 

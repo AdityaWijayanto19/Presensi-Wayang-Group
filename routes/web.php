@@ -265,7 +265,21 @@ Route::middleware(['auth:karyawan'])->group(function () {
             return redirect()->route('login');
         }
         $notifications = $user->notifications()->latest()->get();
-        return view('presensi.notifikasi', compact('notifications'));
+
+        // Group by tanggal
+        $grouped = $notifications->groupBy(function ($n) {
+            return $n->created_at->format('Y-m-d');
+        })->map(function ($items, $date) {
+            return [
+                'date' => $date,
+                'label' => \Carbon\Carbon::parse($date)->isToday() ? 'Hari Ini'
+                    : (\Carbon\Carbon::parse($date)->isYesterday() ? 'Kemarin'
+                    : \Carbon\Carbon::parse($date)->translatedFormat('d M Y')),
+                'items' => $items,
+            ];
+        })->values();
+
+        return view('presensi.notifikasi', compact('grouped'));
     });
     Route::post('/notifications/{id}/read', function ($id) {
         $user = Auth::guard('karyawan')->user();

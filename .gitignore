@@ -25,3 +25,6 @@ yarn-error.log
 *.zip
 .DS_Store
 /docs/*
+/public/storage_backup
+composer.phar
+npm-debug.log

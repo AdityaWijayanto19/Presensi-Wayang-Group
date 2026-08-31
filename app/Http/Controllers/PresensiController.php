@@ -55,36 +55,36 @@ class PresensiController extends Controller
             ->first();
 
         $jam_masuk = $unitkerja->jam_masuk;
-        
+
 
         // ================= PERHITUNGAN KETERLAMBATAN =================
         $terlambat = 0;
-        
+
         // Arthama tidak memiliki aturan keterlambatan
         if ($unit != 'Arthama') {
-        
+
             $jamMasuk = strtotime($jam_masuk);
             $jamAbsen = strtotime($jam);
-        
+
             if ($jamAbsen > $jamMasuk) {
-        
+
                 // Selisih menit dari jam masuk
                 $selisihMenit = floor(($jamAbsen - $jamMasuk) / 60);
-        
+
                 if ($selisihMenit <= 60) {
-        
+
                     // 1 - 60 menit dihitung sesuai menit sebenarnya
                     $terlambat = $selisihMenit;
-        
+
                 } else {
-        
+
                     // >60 menit dibulatkan per kelipatan 60
                     $terlambat = floor($selisihMenit / 60) * 60;
-        
+
                 }
-        
+
             }
-        
+
         }
 
         // //perhitungan lebih 5 menit akan terlambat
@@ -124,19 +124,19 @@ class PresensiController extends Controller
         } else {
             $status = "in";
         }
-        
+
         // VALIDASI MINIMAL 8 JAM KERJA
         if ($cek && $cek->jam_out == null) {
-        
+
             $jamMasuk = strtotime($cek->jam_in);
             $jamSekarang = strtotime($jam);
-        
+
             $selisihJamKerja = ($jamSekarang - $jamMasuk) / 3600;
-        
+
             if ($selisihJamKerja < 8) {
-        
+
                 $sisaJam = ceil(8 - $selisihJamKerja);
-        
+
                 echo "error|Belum bisa presensi pulang! Minimal bekerja 8 jam.|out";
                 return;
             }
@@ -191,12 +191,12 @@ class PresensiController extends Controller
             // }
 
             if($update){
-            
+
                 $hasil = file_put_contents(
                     public_path('storage/uploads/absensi/' . $fileName),
                     $image_base64
                 );
-            
+
                 if($hasil){
                     echo "success|Presensi berhasil, selamat istirahat!|out";
                 }else{
@@ -224,14 +224,14 @@ class PresensiController extends Controller
             // }else{
             //     echo "error|Presensi gagal, coba lagi!|in";
             // }
-            
+
             if($simpan){
-            
+
                 $hasil = file_put_contents(
                     public_path('storage/uploads/absensi/' . $fileName),
                     $image_base64
                 );
-            
+
                 if($hasil){
                     echo "success|Presensi berhasil, selamat bekerja!|in";
                 }else{
@@ -280,7 +280,7 @@ class PresensiController extends Controller
     {
         $nik = Auth::guard('karyawan')->user()->nik;
         $dataizin = DB::table('izin')->where('nik', $nik)->orderBy('tgl_izin', 'desc')->get();
-        
+
         return view('presensi.izin', compact('dataizin'));
     }
 
@@ -326,7 +326,7 @@ class PresensiController extends Controller
 
         }
 
-        
+
         // CEK ADA FILE
         if ($request->hasFile('file')) {
 
@@ -360,22 +360,22 @@ class PresensiController extends Controller
     public function deleteizin(int $id)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
-    
+
         $izin = DB::table('izin')
             ->where('id', $id)
             ->where('nik', $nik)
             ->first();
-    
+
         if (!$izin) {
             return redirect()->back()->with('error', 'Data tidak ditemukan!');
         }
-    
+
         Storage::delete('public/uploads/izin/' . $izin->file);
-    
+
         DB::table('izin')
             ->where('id', $id)
             ->delete();
-    
+
         return redirect()->back()->with('success', 'Data izin berhasil dihapus!');
     }
 
@@ -386,12 +386,12 @@ class PresensiController extends Controller
     public function lembur()
     {
         $nik = Auth::guard('karyawan')->user()->nik;
-        
+
         $datalembur = DB::table('lembur')
             ->where('nik', $nik)
             ->orderBy('tgl_lembur', 'desc')
             ->get();
-        
+
         return view('presensi.lembur', compact('datalembur'));
     }
 
@@ -404,11 +404,11 @@ class PresensiController extends Controller
     public function showfilelembur(string $file)
     {
         $path = storage_path('app/public/uploads/lembur/' . $file);
-        
+
         if (!file_exists($path)) {
         abort(404);
         }
-        
+
         return response()->file($path);
     }
 
@@ -416,7 +416,7 @@ class PresensiController extends Controller
     public function storelembur(Request $request)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
-    
+
         // VALIDASI
         $request->validate([
             'tgl_lembur'   => 'required|date',
@@ -424,48 +424,48 @@ class PresensiController extends Controller
             'file_form'    => 'required|mimes:pdf,doc,docx,jpg,jpeg,png|max:4096',
             'file_laporan' => 'required|mimes:pdf,doc,docx,jpg,jpeg,png|max:4096'
         ]);
-        
+
         // TIDAK BOLEH MEMILIH TANGGAL MASA DEPAN
         if ($request->tgl_lembur > date('Y-m-d')) {
-        
+
             return redirect()->back()->with(
                 'error',
                 'Tanggal lembur tidak boleh melebihi hari ini!'
             );
-        
+
         }
-    
+
         // CEK APAKAH SUDAH ADA LEMBUR DI TANGGAL TERSEBUT
         $cek = DB::table('lembur')
             ->where('nik', $nik)
             ->where('tgl_lembur', $request->tgl_lembur)
             ->count();
-    
+
         if ($cek > 0) {
-    
+
             return redirect()->back()->with(
                 'error',
                 'Anda sudah mengirim data lembur pada tanggal tersebut!'
             );
-    
+
         }
-    
+
         // CEK KEDUA FILE
         if ($request->hasFile('file_form') && $request->hasFile('file_laporan')) {
-    
+
             $form = $request->file('file_form');
             $laporan = $request->file('file_laporan');
-    
+
             // NAMA FILE
             $timestamp = date('YmdHis');
-            
+
             $nama_form = $timestamp . "-form-" . $form->getClientOriginalName();
             $nama_laporan = $timestamp . "-laporan-" . $laporan->getClientOriginalName();
-    
+
             // SIMPAN FILE
             $form->storeAs('public/uploads/lembur', $nama_form);
             $laporan->storeAs('public/uploads/lembur', $nama_laporan);
-    
+
             // SIMPAN DATABASE
             DB::table('lembur')->insert([
                 'nik'              => $nik,
@@ -475,15 +475,15 @@ class PresensiController extends Controller
                 'file_laporan'     => $nama_laporan,
                 'dikirim_tanggal'  => now()
             ]);
-    
+
             return redirect('/presensi/lembur')
                 ->with('success', 'Data lembur berhasil dikirim!');
-    
+
         } else {
-    
+
             return redirect()->back()
                 ->with('error', 'Data gagal dikirim!');
-    
+
         }
     }
 
@@ -491,33 +491,33 @@ class PresensiController extends Controller
     public function deletelembur(int $id)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
-    
+
         $lembur = DB::table('lembur')
             ->where('id', $id)
             ->where('nik', $nik)
             ->first();
-    
+
         if (!$lembur) {
             return redirect()->back()->with('error', 'Data tidak ditemukan!');
         }
-    
+
         // HAPUS FILE FORM
         Storage::delete('public/uploads/lembur/' . $lembur->file_form);
-    
+
         // HAPUS FILE LAPORAN
         Storage::delete('public/uploads/lembur/' . $lembur->file_laporan);
-    
+
         // HAPUS DATA DATABASE
         DB::table('lembur')
             ->where('id', $id)
             ->delete();
-    
+
         return redirect()->back()->with('success', 'Data lembur berhasil dihapus!');
     }
     // =====================================================
     // WFH KARYAWAN - Refactored Workflow (Best Practice)
     // =====================================================
-    
+
     public function wfh()
     {
         $karyawan = Auth::guard("karyawan")->user();
@@ -543,7 +543,7 @@ class PresensiController extends Controller
 
         return view("presensi.wfh", compact("datawfh"));
     }
-    
+
     public function buatwfh()
     {
         $karyawan = Auth::guard("karyawan")->user()->load("unitperusahaan");
@@ -562,11 +562,11 @@ class PresensiController extends Controller
 
         return view("presensi.buatwfh", compact("karyawan", "presensiToday", "disableToday"));
     }
-    
+
     // =====================================================
     // TAMPILKAN FILE FORM WFH
     // =====================================================
-    
+
     public function showfilewfh(string $file)
     {
         // Sanitize: only allow safe filename characters
@@ -605,11 +605,11 @@ class PresensiController extends Controller
         abort(404);
     }
 
-    
+
     // =====================================================
     // SIMPAN DATA WFH - New Workflow
     // =====================================================
-    
+
     public function storewfh(Request $request)
     {
         $karyawan = Auth::guard("karyawan")->user();
@@ -708,20 +708,20 @@ class PresensiController extends Controller
             return redirect()->back()->with("error", "Gagal mengajukan WFH. Silakan coba lagi.")->withInput();
         }
     }
-    
+
     // =====================================================
     // HAPUS DATA WFH
     // =====================================================
-    
+
     public function deletewfh(int $id)
     {
         $nik = Auth::guard("karyawan")->user()->nik;
-    
+
         $wfh = DB::table("wfh")
             ->where("id", $id)
             ->where("nik", $nik)
             ->first();
-    
+
         if (!$wfh) {
             return redirect()->back()->with("error", "Data tidak ditemukan!");
         }
@@ -730,11 +730,11 @@ class PresensiController extends Controller
         if (!in_array($wfh->status, [WfhStatus::PendingAtasan->value, WfhStatus::PendingAdmin->value])) {
             return redirect()->back()->with("error", "WFH yang sudah disetujui/ditolak tidak bisa dihapus!");
         }
-    
+
         WfhService::deleteWfhFiles($wfh);
-    
+
         DB::table("wfh")->where("id", $id)->delete();
-    
+
         return redirect()->back()->with("success", "Data WFH berhasil dihapus!");
     }
 
@@ -809,10 +809,10 @@ class PresensiController extends Controller
         $pengaju = \App\Models\Karyawan::where("nik", $wfh->nik)->first();
         if ($pengaju) {
             $pengaju->notify(new WfhApproved((object)$wfh));
-            WfhService::sendWebPush($wfh->nik, "WFH Disetujui Admin", "WFH " . $wfh->tgl_wfh . " disetujui! Silakan input Laporan.", '/presensi/wfh/' . $id . '/laporan');
+            WfhService::sendWebPush($wfh->nik, "WFH Disetujui ", "WFH " . $wfh->tgl_wfh . " disetujui! Silakan input Laporan.", '/presensi/wfh/' . $id . '/laporan');
         }
         cache()->forget("pending_wfh_count"); cache()->forget("pending_wfh_admin_count");
-        return redirect()->back()->with("success", "WFH disetujui Admin. Karyawan bisa input laporan.");
+        return redirect()->back()->with("success", "WFH disetujui. Karyawan bisa input laporan.");
     }
 
     public function rejectWfhAdmin(Request $request, int $id)
@@ -832,10 +832,10 @@ class PresensiController extends Controller
         $pengaju = \App\Models\Karyawan::where("nik", $wfh->nik)->first();
         if ($pengaju) {
             $pengaju->notify(new WfhRejected((object)$wfh, $request->rejected_reason));
-            WfhService::sendWebPush($wfh->nik, "WFH Ditolak Admin", "WFH " . $wfh->tgl_wfh . " ditolak Admin");
+            WfhService::sendWebPush($wfh->nik, "WFH Ditolak", "WFH " . $wfh->tgl_wfh . " ditolak Admin");
         }
         cache()->forget("pending_wfh_count"); cache()->forget("pending_wfh_admin_count");
-        return redirect()->back()->with("success", "WFH ditolak Admin");
+        return redirect()->back()->with("success", "WFH ditolak");
     }
 
     // =====================================================
@@ -1191,30 +1191,30 @@ class PresensiController extends Controller
     // =====================================================
     // CETAK LAPORAN PRESENSI
     // =====================================================
-    
+
     public function cetaklaporan(Request $request)
     {
         $nik = $request->nik;
         $bulan = $request->bulan;
         $tahun = $request->tahun;
         $unit = $request->unit;
-    
+
         // =====================================================
         // VALIDASI FILTER
         // =====================================================
-    
+
         if (empty($bulan) || empty($tahun) || empty($unit) || empty($nik)) {
-    
+
             return Redirect::back()->with([
                 'warning' => 'Harap lengkapi seluruh filter terlebih dahulu'
             ]);
-    
+
         }
-    
+
         // =====================================================
         // NAMA BULAN
         // =====================================================
-    
+
         $namabulan = [
             "",
             "Januari",
@@ -1230,11 +1230,11 @@ class PresensiController extends Controller
             "November",
             "Desember"
         ];
-    
+
         // =====================================================
         // DATA KARYAWAN
         // =====================================================
-    
+
         $karyawan = DB::table('karyawan')
             ->join('unitperusahaan', 'karyawan.unit', '=', 'unitperusahaan.unit')
             ->select(
@@ -1243,90 +1243,90 @@ class PresensiController extends Controller
             )
             ->where('karyawan.nik', $nik)
             ->first();
-    
+
         // =====================================================
         // CEK DATA KARYAWAN
         // =====================================================
-    
+
         if (!$karyawan) {
-    
+
             return Redirect::back()->with([
                 'warning' => 'Data karyawan tidak ditemukan'
             ]);
-    
+
         }
-    
+
         // =====================================================
         // DATA PRESENSI
         // =====================================================
-    
+
         $presensi = DB::table('presensi')
             ->where('nik', $nik)
             ->whereMonth('tgl_presensi', $bulan)
             ->whereYear('tgl_presensi', $tahun)
             ->orderBy('tgl_presensi', 'desc')
             ->get();
-    
+
         // =====================================================
         // HITUNG TOTAL JAM KERJA
         // =====================================================
-    
+
         $totalMenitKerja = 0;
-    
+
         foreach ($presensi as $p) {
-    
+
             if ($p->jam_out != null) {
-    
+
                 $awal = strtotime($p->jam_in);
                 $akhir = strtotime($p->jam_out);
-    
+
                 $selisih = ($akhir - $awal) / 60;
-    
+
                 $totalMenitKerja += $selisih;
             }
         }
-    
+
         $totalJamKerja = floor($totalMenitKerja / 60);
         $sisaMenitKerja = $totalMenitKerja % 60;
-    
+
         // =====================================================
         // DATA LEMBUR
         // =====================================================
-    
+
         $lembur = DB::table('lembur')
             ->where('nik', $nik)
             ->whereMonth('tgl_lembur', $bulan)
             ->whereYear('tgl_lembur', $tahun)
             ->get()
             ->keyBy('tgl_lembur');
-    
+
         // =====================================================
         // HITUNG TOTAL LEMBUR & PRORATE
         // =====================================================
-    
+
         $totalLembur = 0;
         $totalProrate = 0;
-    
+
         foreach ($lembur as $item) {
-    
+
             if ($item->durasi == 'Prorate') {
-    
+
                 $totalProrate++;
-    
+
             } else {
-    
+
                 $angka = (float) $item->durasi;
-    
+
                 $totalLembur += $angka;
-    
+
             }
-    
+
         }
-    
+
         // =====================================================
         // DATA WFH
         // =====================================================
-    
+
         $wfh = DB::table('wfh')
             ->where('nik', $nik)
             ->where('status', 'approved')
@@ -1334,29 +1334,29 @@ class PresensiController extends Controller
             ->whereYear('tgl_wfh', $tahun)
             ->get()
             ->keyBy('tgl_wfh');
-    
+
         // =====================================================
         // HITUNG TOTAL WFH (hanya yang approved)
         // =====================================================
-    
+
         $totalWfh = $wfh->count();
-    
+
         // =====================================================
         // CEK DATA PRESENSI
         // =====================================================
-    
+
         if ($presensi->isEmpty()) {
-    
+
             return Redirect::back()->with([
                 'warning' => 'Data presensi tidak ditemukan'
             ]);
-    
+
         }
-    
+
         // =====================================================
         // GENERATE PDF
         // =====================================================
-    
+
         $pdf = Pdf::loadView(
             'presensi.cetaklaporan',
             compact(
@@ -1374,11 +1374,11 @@ class PresensiController extends Controller
                 'totalJamKerja'
             )
         );
-    
+
         // =====================================================
         // DOWNLOAD PDF
         // =====================================================
-    
+
         return $pdf->download(
             'Laporan_Presensi_' . $karyawan->nama_lengkap . '.pdf'
         );
@@ -1415,7 +1415,7 @@ class PresensiController extends Controller
                 $unit
             );
         }
-        
+
         if (!empty($jenis_izin)) {
             $query->where(
                 'izin.jenis_izin',
@@ -1447,17 +1447,17 @@ class PresensiController extends Controller
         $izin = DB::table('izin')
             ->where('id', $id)
             ->first();
-    
+
         if (!$izin) {
             return redirect()->back()->with('error', 'Data tidak ditemukan!');
         }
-    
+
         Storage::delete('public/uploads/izin/' . $izin->file);
-    
+
         DB::table('izin')
             ->where('id', $id)
             ->delete();
-    
+
         return redirect()->back()->with('success', 'Data izin berhasil dihapus!');
     }
 
@@ -1472,11 +1472,11 @@ class PresensiController extends Controller
         $nama_karyawan = $request->nama_karyawan;
         $unit = $request->unit;
         $tanggal = $request->tanggal ?? date('Y-m-d');
-    
+
         $query = DB::table('lembur')
             ->join('karyawan', 'lembur.nik', '=', 'karyawan.nik')
             ->join('unitperusahaan', 'karyawan.unit', '=', 'unitperusahaan.unit');
-    
+
         if (!empty($nama_karyawan)) {
             $query->where(
                 'karyawan.nama_lengkap',
@@ -1484,33 +1484,33 @@ class PresensiController extends Controller
                 '%' . $nama_karyawan . '%'
             );
         }
-    
+
         if (!empty($unit)) {
             $query->where(
                 'unitperusahaan.unit',
                 $unit
             );
         }
-    
+
         if (!empty($tanggal)) {
             $query->where(
                 'lembur.tgl_lembur',
                 $tanggal
             );
         }
-    
+
         $datalembur = $query
             ->orderBy('tgl_lembur', 'desc')
             ->paginate(5);
-    
+
         $unitperusahaan = DB::table('unitperusahaan')->get();
-    
+
         return view(
             'presensi.datalembur',
             compact('datalembur', 'unitperusahaan')
         );
     }
-    
+
     // =====================================================
     // ADMIN - HAPUS DATA LEMBUR
     // =====================================================
@@ -1520,39 +1520,39 @@ class PresensiController extends Controller
         $lembur = DB::table('lembur')
             ->where('id', $id)
             ->first();
-    
+
         if ($lembur) {
-    
+
             Storage::delete('public/uploads/lembur/' . $lembur->file_form);
-    
+
             Storage::delete('public/uploads/lembur/' . $lembur->file_laporan);
-    
+
             DB::table('lembur')
                 ->where('id', $id)
                 ->delete();
         }
-    
+
         return redirect()->back()->with('success', 'Data lembur berhasil dihapus!');
     }
-    
-    
+
+
     // =====================================================
     // ADMIN - DATA WFH
     // =====================================================
-    
+
     public function datawfh(Request $request)
     {
         $nama_karyawan = $request->nama_karyawan;
         $unit = $request->unit;
         $tanggal = $request->tanggal;
         $status = $request->status;
-    
+
         $query = DB::table('wfh')
             ->join('karyawan', 'wfh.nik', '=', 'karyawan.nik')
             ->join('unitperusahaan', 'karyawan.unit', '=', 'unitperusahaan.unit')
             ->leftJoin('karyawan as atasan', 'wfh.atasan_nik', '=', 'atasan.nik')
             ->select('wfh.*', 'karyawan.nama_lengkap', 'karyawan.jabatan', 'karyawan.posisi', 'karyawan.unit', 'unitperusahaan.perusahaan', 'atasan.nama_lengkap as atasan_nama', 'atasan.jabatan as atasan_jabatan');
-    
+
         if (!empty($nama_karyawan)) {
             $query->where('karyawan.nama_lengkap', 'like', '%' . $nama_karyawan . '%');
         }
@@ -1565,20 +1565,20 @@ class PresensiController extends Controller
         if (!empty($status)) {
             $query->where('wfh.status', $status);
         }
-    
+
         $datawfh = $query->orderBy('wfh.tgl_wfh', 'desc')->paginate(5)->withQueryString();
         $unitperusahaan = DB::table('unitperusahaan')->get();
-    
+
         $pendingWfhAdmin = DB::table('wfh')->where('status', 'pending_admin')->count();
         $pendingLaporanAdmin = DB::table('wfh')->where('laporan_status', 'pending_admin')->count();
 
         return view('presensi.datawfh', compact('datawfh', 'unitperusahaan', 'pendingWfhAdmin', 'pendingLaporanAdmin'));
     }
-    
+
     // =====================================================
     // ADMIN - HAPUS DATA WFH
     // =====================================================
-    
+
     public function deletewfhadmin(int $id)
     {
         $wfh = DB::table('wfh')->where('id', $id)->first();
