@@ -127,7 +127,7 @@ fi
 # ============================================================
 info "Installing composer dependencies..."
 if command -v composer &> /dev/null; then
-    composer install --no-dev --optimize-autoloader --no-interaction
+    $PHP_BIN $(which composer) install --no-dev --optimize-autoloader --no-interaction
     success "Composer install selesai"
 elif [ -f "$APP_DIR/composer.phar" ]; then
     $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction
