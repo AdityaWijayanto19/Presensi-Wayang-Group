@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 # deploy.sh - Presensi Digital Production Deployment Script
-# Untuk Hostinger Shared Hosting / VPS
+# Untuk Hostinger VPS / Shared Hosting
 # ============================================================
 # Cara pakai:
 #   chmod +x deploy.sh
@@ -22,7 +22,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 APP_DIR="$(pwd)"
 
@@ -42,6 +42,8 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║     PRESENSI DIGITAL - DEPLOYMENT SCRIPT     ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
+info "Project directory: $APP_DIR"
+echo ""
 
 # ============================================================
 # 0. CHECK PHP BINARY
@@ -49,14 +51,14 @@ echo ""
 info "Checking PHP binary..."
 if [ -f "$PHP_BIN" ]; then
     PHP_VERSION=$($PHP_BIN -r 'echo PHP_VERSION;')
-    success "PHP $PHP_VERSION found at $PHP_BIN"
+    success "PHP $PHP_VERSION found"
 else
     error "PHP binary not found at $PHP_BIN"
     echo "Coba cari PHP manual:"
     echo "  which php"
     echo "  ls /opt/alt/php*/usr/bin/php"
     echo ""
-    echo "Set variable PHP_BIN di deploy.sh sesuai path PHP kamu."
+    echo "Edit variable PHP_BIN di deploy.sh sesuai path PHP kamu."
     exit 1
 fi
 
@@ -67,54 +69,71 @@ if [ ! -f .env ]; then
     warn ".env file tidak ditemukan!"
     info "Membuat .env dari .env.example..."
     cp .env.example .env
+    success ".env dibuat dari .env.example"
 
     info "Generating APP_KEY..."
     $PHP_BIN artisan key:generate --ansi
+    success "APP_KEY generated"
 
     echo ""
-    error "STOP! Edit file .env terlebih dahulu!"
+    echo -e "${YELLOW}============================================${NC}"
+    echo -e "${YELLOW}  EDIT .env TERLEBIH DAHULU!                ${NC}"
+    echo -e "${YELLOW}============================================${NC}"
+    echo ""
+    echo "Jalankan: nano .env"
     echo ""
     echo "Yang harus diisi:"
     echo "  APP_ENV        = production"
     echo "  APP_DEBUG      = false"
-    echo "  APP_URL        = https://domain-kamu.com"
+    echo "  APP_URL        = https://test-presensi.wayang.group"
     echo "  DB_HOST        = localhost"
-    echo "  DB_DATABASE    = nama_database"
-    echo "  DB_USERNAME    = username_database"
-    echo "  DB_PASSWORD    = password_database"
+    echo "  DB_DATABASE    = nama_database dari hPanel"
+    echo "  DB_USERNAME    = username_database dari hPanel"
+    echo "  DB_PASSWORD    = password_database dari hPanel"
     echo ""
-    echo "Setelah edit .env, jalankan lagi: ./deploy.sh"
+    echo "Setelah edit, jalankan lagi: ./deploy.sh"
     exit 1
 fi
 
 # Cek APP_KEY
-if grep -q "APP_KEY=" .env; then
-    KEY_VALUE=$(grep "APP_KEY=" .env | cut -d'=' -f2)
-    if [ -z "$KEY_VALUE" ] || [ "$KEY_VALUE" = "" ]; then
-        info "APP_KEY kosong, generating..."
-        $PHP_BIN artisan key:generate --ansi
-        success "APP_KEY generated"
-    else
-        success "APP_KEY sudah ada"
-    fi
+info "Checking APP_KEY..."
+KEY_VALUE=$(grep "^APP_KEY=" .env | cut -d'=' -f2)
+if [ -z "$KEY_VALUE" ]; then
+    info "APP_KEY kosong, generating..."
+    $PHP_BIN artisan key:generate --ansi
+    success "APP_KEY generated"
+else
+    success "APP_KEY sudah ada"
+fi
+
+# Cek APP_ENV
+APP_ENV=$(grep "^APP_ENV=" .env | cut -d'=' -f2)
+if [ "$APP_ENV" = "local" ]; then
+    warn "APP_ENV masih 'local'! Seharusnya 'production'"
+    warn "Edit .env: APP_ENV=production"
+fi
+
+# Cek APP_DEBUG
+APP_DEBUG=$(grep "^APP_DEBUG=" .env | cut -d'=' -f2)
+if [ "$APP_DEBUG" = "true" ]; then
+    warn "APP_DEBUG masih 'true'! Seharusnya 'false' untuk production"
+    warn "Edit .env: APP_DEBUG=false"
 fi
 
 # ============================================================
 # 2. COMPOSER INSTALL (Production)
 # ============================================================
-info "Installing composer dependencies (--no-dev --optimize-autoloader)..."
-
-# Cek apakah composer tersedia
+info "Installing composer dependencies..."
 if command -v composer &> /dev/null; then
-    composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+    composer install --no-dev --optimize-autoloader --no-interaction
     success "Composer install selesai"
 elif [ -f "$APP_DIR/composer.phar" ]; then
-    $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction --no-scripts
+    $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction
     success "Composer install selesai (via composer.phar)"
 else
-    warn "Composer tidak ditemukan! Download composer.phar..."
-    curl -sS https://getcomposer.org/installer | $PHP_BIN
-    $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction --no-scripts
+    warn "Composer tidak ditemukan, download composer.phar..."
+    curl -sS https://getcomposer.org/installer | $PHP_BIN -- --quiet
+    $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction
     success "Composer install selesai (via downloaded composer.phar)"
 fi
 
@@ -123,7 +142,7 @@ fi
 # ============================================================
 if [ -f package.json ]; then
     info "Installing NPM dependencies..."
-    npm install --production=false
+    npm install --production=false 2>/dev/null
     success "NPM install selesai"
 
     info "Building Vite assets..."
@@ -133,7 +152,7 @@ if [ -f package.json ]; then
     # Hapus hot file (Vite dev server flag)
     if [ -f public/hot ]; then
         rm -f public/hot
-        success "File public/hot dihapus (dev server flag)"
+        success "File public/hot dihapus"
     fi
 else
     warn "package.json tidak ditemukan, skip npm build"
@@ -142,20 +161,14 @@ fi
 # ============================================================
 # 4. RUN MIGRATIONS
 # ============================================================
-info "Running database migrations..."
+echo ""
 read -p "Jalankan migration sekarang? (y/n): " -n 1 -r
 echo ""
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+    info "Running database migrations..."
     $PHP_BIN artisan migrate --force
     success "Migrations selesai"
-else
-    warn "Migration dilewati! Jalankan manual: php artisan migrate --force"
-fi
 
-# ============================================================
-# 5. SEEDERS (OPSIONAL)
-# ============================================================
-if [[ $REPLY =~ ^[Yy]$ ]]; then
     read -p "Jalankan seeder juga? (y/n): " -n 1 -r
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -163,41 +176,34 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         $PHP_BIN artisan db:seed --force
         success "Seeders selesai"
     fi
+else
+    warn "Migration dilewati! Jalankan manual: php artisan migrate --force"
 fi
 
 # ============================================================
-# 6. STORAGE SYMLINK
+# 5. STORAGE SYMLINK
 # ============================================================
 info "Creating storage symlink..."
 $PHP_BIN artisan storage:link --force
-success "Storage symlink: public/storage -> storage/app/public"
+success "Storage symlink created"
 
 # ============================================================
-# 7. SET FOLDER PERMISSIONS
+# 6. SET FOLDER PERMISSIONS
 # ============================================================
 info "Setting folder permissions..."
-chmod -R 775 storage/
-chmod -R 775 bootstrap/cache/
-
-# Coba set ownership ke www-data (jika punya akses)
-if [ "$(id -u)" -eq 0 ]; then
-    chown -R www-data:www-data storage/ bootstrap/cache/ 2>/dev/null || true
-    success "Ownership set ke www-data"
-else
-    warn "Tidak punya akses root untuk chown. Jika permission error, jalankan:"
-    echo "  sudo chown -R www-data:www-data storage/ bootstrap/cache/"
-fi
-
+chmod -R 775 storage/ 2>/dev/null || true
+chmod -R 775 bootstrap/cache/ 2>/dev/null || true
+chmod -R 775 public/build/ 2>/dev/null || true
 success "Folder permissions: 775"
 
 # ============================================================
-# 8. CACHE & OPTIMIZATION
+# 7. CACHE & OPTIMIZATION
 # ============================================================
 info "Clearing old caches..."
-$PHP_BIN artisan cache:clear
-$PHP_BIN artisan config:clear
-$PHP_BIN artisan route:clear
-$PHP_BIN artisan view:clear
+$PHP_BIN artisan cache:clear 2>/dev/null || true
+$PHP_BIN artisan config:clear 2>/dev/null || true
+$PHP_BIN artisan route:clear 2>/dev/null || true
+$PHP_BIN artisan view:clear 2>/dev/null || true
 
 info "Caching configuration..."
 $PHP_BIN artisan config:cache
@@ -216,18 +222,14 @@ $PHP_BIN artisan optimize
 success "Optimize complete"
 
 # ============================================================
-# 9. REHASH PASSWORD (opsional, untuk Laravel < 10)
-# ============================================================
-info "Rehashing passwords..."
-$PHP_BIN artisan auth:reminders-table 2>/dev/null || true
-
-# ============================================================
-# 10. DONE
+# 8. DONE
 # ============================================================
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║        DEPLOYMENT BERHASIL!                  ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
+echo ""
+echo "Project: $APP_DIR"
 echo ""
 echo "Yang sudah dilakukan:"
 echo "  [x] Composer install (--no-dev)"
@@ -240,17 +242,28 @@ echo "  [x] Routes cached"
 echo "  [x] Views cached"
 echo "  [x] Application optimized"
 echo ""
-echo -e "${YELLOW}Yang masih harus dilakukan manual:${NC}"
+echo -e "${YELLOW}============================================${NC}"
+echo -e "${YELLOW}  LANGKAH SELANJUTNYA (MANUAL):              ${NC}"
+echo -e "${YELLOW}============================================${NC}"
 echo ""
-echo "  1. Setup Cron Job:"
-echo "     ./setup-cron.sh"
+echo "1. SETUP CRON JOB (via hPanel):"
+echo "   Login hPanel > VPS > Cron Jobs > Create New"
 echo ""
-echo "  2. Transfer user uploads (jika ada data lama):"
-echo "     scp -r uploads/ user@server:/path/to/storage/app/public/"
+echo "   Command:"
+echo "   cd $APP_DIR && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
 echo ""
-echo "  3. Install SSL certificate (jika belum):"
-echo "     → hPanel > SSL > Let's Encrypt"
+echo "   Schedule: Semua field isi * (setiap menit)"
 echo ""
-echo "  4. Test akses:"
-echo "     → https://domain-kamu.com"
+echo "2. INSTALL SSL (jika belum):"
+echo "   hPanel > SSL > Let's Encrypt > Install"
+echo ""
+echo "3. TRANSFER USER UPLOADS (jika ada data lama):"
+echo "   scp -r local-uploads/ user@server:$APP_DIR/storage/app/public/"
+echo ""
+echo "4. CLEAR PUSH SUBSCRIPTIONS (karena VAPID keys baru):"
+echo "   $PHP_BIN artisan tinker"
+echo "   >>> DB::table('push_subscriptions')->truncate();"
+echo ""
+echo "5. TEST:"
+echo "   curl -I https://test-presensi.wayang.group"
 echo ""
