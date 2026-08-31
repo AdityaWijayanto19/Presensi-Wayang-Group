@@ -2,10 +2,10 @@
     @php
         $status = $d->status ?? 'pending_atasan';
         $badge = match ($status) {
-            'pending_atasan' => 'bg-yellow-500',
-            'pending_admin' => 'bg-blue-500',
-            'approved' => 'bg-green-500',
-            'rejected' => 'bg-red-500',
+            'pending_atasan' => 'bg-warning',
+            'pending_admin' => 'bg-info',
+            'approved' => 'bg-success',
+            'rejected' => 'bg-danger',
             'unpaid' => 'bg-secondary',
             default => 'bg-secondary',
         };
@@ -73,9 +73,9 @@
                             data-id="{{ $d->id }}">Tolak</button>
                     </div>
                 @elseif($status === 'approved')
-                    <span class="badge bg-green-500">Disetujui</span>
+                    <span class="badge bg-success">Disetujui</span>
                 @elseif($status === 'rejected')
-                    <span class="badge bg-red-500">Ditolak</span>
+                    <span class="badge bg-danger">Ditolak</span>
                 @elseif($status === 'unpaid')
                     <span class="badge bg-secondary">Unpaid</span>
                 @endif
@@ -83,11 +83,11 @@
                     @php
                         $lStatus = $d->laporan_status;
                         $lBadge = match ($lStatus) {
-                            'pending_atasan' => 'bg-yellow-100 text-yellow-700',
-                            'pending_admin' => 'bg-blue-100 text-blue-700',
-                            'approved' => 'bg-green-100 text-green-700',
-                            'rejected' => 'bg-red-100 text-red-700',
-                            default => 'bg-gray-100 text-gray-700',
+                            'pending_atasan' => 'bg-yellow-lt text-yellow',
+                            'pending_admin' => 'bg-blue-lt text-blue',
+                            'approved' => 'bg-green-lt text-green',
+                            'rejected' => 'bg-red-lt text-red',
+                            default => 'bg-gray-lt text-gray',
                         };
                         $lLabel = match ($lStatus) {
                             'pending_atasan' => 'Laporan: Menunggu Atasan',

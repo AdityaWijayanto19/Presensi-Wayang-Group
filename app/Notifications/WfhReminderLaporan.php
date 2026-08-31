@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use App\Services\WfhService;
 
-class WfhMarkedUnpaid extends Notification
+class WfhReminderLaporan extends Notification
 {
     use Queueable;
 
@@ -20,10 +20,10 @@ class WfhMarkedUnpaid extends Notification
     public function toDatabase(object $notifiable): array
     {
         return [
-            'type' => 'wfh_unpaid',
+            'type' => 'wfh_reminder_laporan',
             'wfh_id' => $this->wfh->id,
             'tgl_wfh' => $this->wfh->tgl_wfh,
-            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
+            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' belum upload laporan! Harap upload sebelum pukul 00:00 agar tidak ditandai sebagai Unpaid.',
         ];
     }
 
@@ -36,9 +36,9 @@ class WfhMarkedUnpaid extends Notification
     {
         WfhService::sendWebPush(
             $notifiable->nik,
-            'WFH Unpaid',
-            'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
-            '/presensi/wfh'
+            '⚠️ Reminder Upload Laporan',
+            'WFH tanggal ' . $this->wfh->tgl_wfh . ' belum upload laporan! Upload sebelum pukul 00:00.',
+            '/presensi/wfh/' . $this->wfh->id . '/laporan'
         );
     }
 }

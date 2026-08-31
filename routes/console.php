@@ -20,3 +20,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('wfh:mark-unpaid')->dailyAt('00:00');
+Schedule::command('wfh:reminder-laporan')->dailyAt('22:00');

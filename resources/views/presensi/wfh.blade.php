@@ -34,13 +34,25 @@
     </div>
 
     @if ($datawfh->count() > 0)
+        @php
+            $approvedCount = $datawfh->where('status', 'approved')->count();
+            $unpaidCount = $datawfh->where('status', 'unpaid')->count();
+        @endphp
         <div class="flex mt-3">
             <div class="w-full px-3">
                 <div class="flex items-center justify-between">
                     <p class="text-[12px] font-semibold tracking-wide text-[#a8a29e] uppercase">
-                        <span class="inline-flex items-center gap-1.5"><ion-icon name="checkmark-done-outline" class="text-[13px] text-emerald-600"></ion-icon> {{ $datawfh->count() }} Data Clear</span>
+                        <span class="inline-flex items-center gap-1.5"><ion-icon name="checkmark-done-outline" class="text-[13px] text-emerald-600"></ion-icon> {{ $datawfh->count() }} Data</span>
                         <span class="mx-1.5 text-[#e7e5e4]">•</span>
-                        <span class="text-emerald-700">Disetujui</span>
+                        @if ($approvedCount > 0)
+                            <span class="text-emerald-700">{{ $approvedCount }} Disetujui</span>
+                        @endif
+                        @if ($unpaidCount > 0)
+                            @if ($approvedCount > 0)
+                                <span class="mx-1.5 text-[#e7e5e4]">•</span>
+                            @endif
+                            <span class="text-gray-500">{{ $unpaidCount }} Unpaid</span>
+                        @endif
                     </p>
                     <span class="text-[11px] font-medium text-[#78716c] bg-white border border-[#f0ece8] rounded-full px-2.5 py-1">{{ date('M Y') }}</span>
                 </div>
@@ -63,6 +75,7 @@
                         'pending_admin' => 'Menunggu Admin',
                         'approved' => 'Disetujui',
                         'rejected' => 'Ditolak',
+                        'unpaid' => 'Unpaid',
                         default => ucfirst($status)
                     };
                     $badgeClass = match($status){
@@ -70,6 +83,7 @@
                         'pending_admin' => 'bg-sky-100 text-sky-700 border-sky-200',
                         'approved' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
                         'rejected' => 'bg-rose-100 text-rose-700 border-rose-200',
+                        'unpaid' => 'bg-gray-100 text-gray-700 border-gray-200',
                         default => 'bg-gray-100 text-gray-700 border-gray-200'
                     };
                     $pdfUrl = !empty($d->pdf_form_path) ? \Illuminate\Support\Facades\Storage::url($d->pdf_form_path) : "#";

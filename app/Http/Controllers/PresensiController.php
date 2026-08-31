@@ -523,13 +523,20 @@ class PresensiController extends Controller
         $karyawan = Auth::guard("karyawan")->user();
         $nik = $karyawan->nik;
 
-        // History clear — hanya approved + sudah input laporan (laporan_deskripsi terisi) yang tampil di presensi/wfh
+        // History WFH — approved + sudah input laporan ATAU unpaid
         $datawfh = DB::table("wfh")
             ->leftJoin("karyawan as atasan", "wfh.atasan_nik", "=", "atasan.nik")
             ->where("wfh.nik", $nik)
-            ->where("wfh.status", WfhStatus::Approved->value)
-            ->whereNotNull("wfh.laporan_deskripsi")
-            ->where("wfh.laporan_deskripsi", "!=", "")
+            ->where(function ($q) {
+                // Approved + sudah input laporan
+                $q->where(function ($q2) {
+                    $q2->where("wfh.status", WfhStatus::Approved->value)
+                        ->whereNotNull("wfh.laporan_deskripsi")
+                        ->where("wfh.laporan_deskripsi", "!=", "");
+                });
+                // Atau unpaid
+                $q->orWhere("wfh.status", WfhStatus::Unpaid->value);
+            })
             ->select("wfh.*", "atasan.nama_lengkap as atasan_nama", "atasan.jabatan as atasan_jabatan")
             ->orderBy("wfh.tgl_wfh", "desc")
             ->get();
