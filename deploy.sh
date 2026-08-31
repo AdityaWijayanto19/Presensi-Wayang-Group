@@ -72,7 +72,8 @@ if [ ! -f .env ]; then
     success ".env dibuat dari .env.example"
 
     info "Generating APP_KEY..."
-    $PHP_BIN artisan key:generate --ansi
+    NEW_KEY=$(openssl rand -base64 32)
+    sed -i "s/^APP_KEY=.*/APP_KEY=base64:$NEW_KEY/" .env
     success "APP_KEY generated"
 
     echo ""
@@ -100,7 +101,8 @@ info "Checking APP_KEY..."
 KEY_VALUE=$(grep "^APP_KEY=" .env | cut -d'=' -f2)
 if [ -z "$KEY_VALUE" ]; then
     info "APP_KEY kosong, generating..."
-    $PHP_BIN artisan key:generate --ansi
+    NEW_KEY=$(openssl rand -base64 32)
+    sed -i "s/^APP_KEY=.*/APP_KEY=base64:$NEW_KEY/" .env
     success "APP_KEY generated"
 else
     success "APP_KEY sudah ada"
