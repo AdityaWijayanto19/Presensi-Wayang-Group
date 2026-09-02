@@ -38,7 +38,8 @@ class WfhReminderLaporan extends Notification
             $notifiable->nik,
             '⚠️ Reminder Upload Laporan',
             'WFH tanggal ' . $this->wfh->tgl_wfh . ' belum upload laporan! Upload sebelum pukul 00:00.',
-            '/presensi/wfh/' . $this->wfh->id . '/laporan'
+            '/presensi/wfh/' . $this->wfh->id . '/laporan',
+            'reminder-laporan-' . $this->wfh->id
         );
     }
 }

@@ -15,6 +15,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WAG-Presensi">
 
     <meta name="theme-color" content="#7A5234">
     <meta name="description" content="WAG Presensi Digital">
@@ -31,6 +32,8 @@
 
     <link rel="manifest"
         href="/manifest.json">
+
+    <link rel="modulepreload" href="{{ asset('assets/js/ionicons/esm/ionicons.js') }}">
 
     <link rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -236,7 +239,6 @@
 
         /* APP CAPSULE */
         #appCapsule {
-            margin-bottom: env(safe-area-inset-bottom);
             margin-top: env(safe-area-inset-top);
             padding-bottom: 70px;
         }
@@ -1052,6 +1054,13 @@
             } catch (error) {
                 console.log('Push subscription failed', error);
             }
+        }
+    </script>
+
+    {{-- PWA Standalone Detection --}}
+    <script>
+        if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+            document.documentElement.classList.add('pwa-standalone');
         }
     </script>
 

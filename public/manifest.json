@@ -1,13 +1,18 @@
 {
     "name": "WAG - Presensi Digital",
     "short_name": "WAG-Presensi",
+    "description": "Aplikasi Presensi Digital WAG",
 
     "start_url": "/dashboard",
+    "scope": "/",
+    "id": "/",
     "display": "standalone",
     "orientation": "portrait",
 
     "background_color": "#ffffff",
     "theme_color": "#7A5234",
+
+    "categories": ["productivity", "business"],
 
     "icons": [
         {

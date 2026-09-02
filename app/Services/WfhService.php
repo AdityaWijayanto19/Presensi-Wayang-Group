@@ -120,7 +120,7 @@ class WfhService
         return $path;
     }
 
-    public static function sendWebPush(string $nik, string $title, string $body, ?string $url = null): void
+    public static function sendWebPush(string $nik, string $title, string $body, ?string $url = null, ?string $tag = null): void
     {
         if (!config('webpush.enabled')) return;
 
@@ -143,6 +143,7 @@ class WfhService
                     'title' => $title,
                     'body' => $body,
                     'url' => $url ?? '/dashboard',
+                    'tag' => $tag,
                 ]);
 
                 $subscription = new \Minishlink\WebPush\Subscription(

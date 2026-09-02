@@ -2,17 +2,21 @@
 self.addEventListener('push', function(event) {
     if (event.data) {
         const data = event.data.json();
+        const tag = data.tag || ('presensi-' + (data.id || Date.now()));
         const options = {
             body: data.body || data.message || 'New notification',
-            icon: '/img/icon-192x192.png',
-            badge: '/img/badge-72x72.png',
+            icon: '/icons/icon_192.png',
+            badge: '/icons/icon_192.png',
             vibrate: [100, 50, 100],
+            tag: tag,
+            renotify: true,
             data: {
                 url: data.url || '/dashboard',
-                id: data.id
+                id: data.id,
+                tag: tag
             },
             actions: [
-                { action: 'open', title: 'Buka', icon: '/img/icon-192x192.png' }
+                { action: 'open', title: 'Buka' }
             ]
         };
         event.waitUntil(
@@ -23,10 +27,10 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
+    const url = event.notification.data?.url || '/dashboard';
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then(function(clientList) {
-                const url = event.notification.data?.url || '/dashboard';
                 for (const client of clientList) {
                     if (client.url.includes(self.registration.scope) && 'focus' in client) {
                         client.navigate(url);
@@ -38,4 +42,8 @@ self.addEventListener('notificationclick', function(event) {
                 }
             })
     );
+});
+
+self.addEventListener('notificationclose', function(event) {
+    // Optional: track closed notifications
 });

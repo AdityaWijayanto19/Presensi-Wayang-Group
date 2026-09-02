@@ -44,7 +44,8 @@ class ReminderLaporan extends Command
                     $wfh->nik,
                     '⚠️ Reminder Upload Laporan',
                     'WFH tanggal ' . $wfh->tgl_wfh . ' belum upload laporan! Upload sebelum pukul 00:00.',
-                    '/presensi/wfh/' . $wfh->id . '/laporan'
+                    '/presensi/wfh/' . $wfh->id . '/laporan',
+                    'reminder-laporan-' . $wfh->id
                 );
 
                 $sentCount++;

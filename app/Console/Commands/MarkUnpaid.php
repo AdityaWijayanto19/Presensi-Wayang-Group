@@ -51,7 +51,8 @@ class MarkUnpaid extends Command
                     $wfh->nik,
                     'WFH Unpaid',
                     'WFH tanggal ' . $wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
-                    '/presensi/wfh'
+                    '/presensi/wfh',
+                    'wfh-unpaid-' . $wfh->id
                 );
             }
         }

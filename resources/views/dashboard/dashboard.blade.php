@@ -623,8 +623,27 @@
             let lastNotifCount = {{ count($notifications ?? []) }};
             let lastPendingAtasan = {{ $pendingAtasan->count() ?? 0 }};
             let lastPendingLaporan = {{ $pendingLaporanAtasan->count() ?? 0 }};
+            let isPolling = false;
+            let sectionHashes = {};
+
+            function updateSection(el, newHtml, key) {
+                if (!el) return;
+                const newHash = newHtml.length + ':' + newHtml.substring(0, 200);
+                if (sectionHashes[key] === newHash) return;
+                sectionHashes[key] = newHash;
+                el.innerHTML = newHtml;
+                if (window.customElements && window.customElements.define) {
+                    el.querySelectorAll('ion-icon').forEach(icon => {
+                        if (!icon.shadowRoot) {
+                            icon.requestUpdate && icon.requestUpdate();
+                        }
+                    });
+                }
+            }
 
             function pollRealtime() {
+                if (isPolling) return;
+                isPolling = true;
                 fetch('/api/realtime/dashboard', {
                         credentials: 'same-origin'
                     })
@@ -649,7 +668,6 @@
                                 lastNotifCount);
                             newNotifs.forEach(n => {
                                 if (n.data && n.data.message) {
-                                    // Browser notification
                                     if (Notification.permission === 'granted') {
                                         new Notification('Presensi Digital', {
                                             body: n.data.message,
@@ -665,7 +683,7 @@
                         // 3. Update notif dropdown list
                         const list = document.getElementById('notifList');
                         if (list && data.notifications && data.notifications.length > 0) {
-                            list.innerHTML = data.notifications.map(n => {
+                            const notifHtml = data.notifications.map(n => {
                                 const isUnread = !n.read_at;
                                 return '<div class="p-3 hover:bg-[#fdf8f4] ' + (isUnread ?
                                         'bg-amber-50/50' : '') + '">' +
@@ -675,9 +693,9 @@
                                     '</div>' +
                                     '</div>';
                             }).join('');
+                            updateSection(list, notifHtml, 'notifList');
                         } else if (list) {
-                            list.innerHTML =
-                                '<div class="p-6 text-center text-[12px] text-[#a8a29e]">Tidak ada notifikasi</div>';
+                            updateSection(list, '<div class="p-6 text-center text-[12px] text-[#a8a29e]">Tidak ada notifikasi</div>', 'notifList');
                         }
 
                         // 4. Update pending atasan + re-render cards
@@ -686,7 +704,7 @@
                             const section = document.getElementById('pendingAtasanSection');
                             if (section) {
                                 if (count === 0) {
-                                    section.innerHTML = '';
+                                    updateSection(section, '', 'pendingAtasan');
                                 } else {
                                     let html =
                                         '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><ion-icon name="shield-checkmark-outline"></ion-icon></span>Perlu Persetujuan (' +
@@ -715,7 +733,7 @@
                                             '</div></div>';
                                     });
                                     html += '</div>';
-                                    section.innerHTML = html;
+                                    updateSection(section, html, 'pendingAtasan');
                                 }
                             }
                             if (count > lastPendingAtasan && count > 0) {
@@ -735,7 +753,7 @@
                             const section = document.getElementById('pendingLaporanSection');
                             if (section) {
                                 if (count === 0) {
-                                    section.innerHTML = '';
+                                    updateSection(section, '', 'pendingLaporan');
                                 } else {
                                     let html =
                                         '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-700"><ion-icon name="document-text-outline"></ion-icon></span>Laporan Perlu Persetujuan (' +
@@ -757,7 +775,7 @@
                                             p.id + '">Tolak Laporan</button></div></div></div></div>';
                                     });
                                     html += '</div>';
-                                    section.innerHTML = html;
+                                    updateSection(section, html, 'pendingLaporan');
                                 }
                             }
                             if (count > lastPendingLaporan && count > 0) {
@@ -859,17 +877,25 @@
                                             actionBtn + '</div></div></div>';
                                     });
                                     html += '</div>';
-                                    section.innerHTML = html;
+                                    updateSection(section, html, 'wfhSaya');
                                 }
                             }
                         }
 
-                    }).catch(() => {});
+                        isPolling = false;
+                    }).catch(() => { isPolling = false; });
             }
 
             // Poll setiap 5 detik
             pollRealtime();
             setInterval(pollRealtime, 5000);
+
+            // Trigger poll segera saat user kembali ke tab (iOS PWA fix)
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    pollRealtime();
+                }
+            });
 
             // === EVENT DELEGATION: Reject buttons (dynamic cards) ===
             document.addEventListener('click', function(e) {

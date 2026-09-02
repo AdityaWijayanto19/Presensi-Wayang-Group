@@ -38,7 +38,8 @@ class WfhMarkedUnpaid extends Notification
             $notifiable->nik,
             'WFH Unpaid',
             'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
-            '/presensi/wfh'
+            '/presensi/wfh',
+            'wfh-unpaid-' . $this->wfh->id
         );
     }
 }
