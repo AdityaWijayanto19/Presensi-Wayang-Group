@@ -28,12 +28,12 @@
         <div class="w-full md:w-1/2 flex flex-col gap-3 mt-3 md:mt-0">
             @if ($cek > 0)
                 <button id="takeabsen" class="btn btn-danger btn-lg w-full">
-                    <ion-icon name="camera"></ion-icon>
+                    <i data-lucide="camera"></i>
                     Presensi Pulang
                 </button>
             @else
                 <button id="takeabsen" class="btn btn-primary btn-lg w-full">
-                    <ion-icon name="camera"></ion-icon>
+                    <i data-lucide="camera"></i>
                     Presensi Masuk
                 </button>
             @endif

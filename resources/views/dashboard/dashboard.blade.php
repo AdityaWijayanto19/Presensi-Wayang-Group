@@ -34,12 +34,12 @@
         <div class="absolute right-[15px] flex items-center gap-3 z-20">
             <a href="/notifications" id="btnNotif"
                 class="relative text-white text-[22px] hover:text-[#bdb4b4] inline-flex items-center justify-center">
-                <ion-icon name="notifications"></ion-icon>
+                <i data-lucide="bell"></i>
                 <span id="notifBadge"
                     class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">0</span>
             </a>
             <a href="/settings/permissions" class="text-white text-[22px] no-underline hover:text-[#bdb4b4]">
-                <ion-icon name="settings"></ion-icon>
+                <i data-lucide="settings"></i>
             </a>
         </div>
 
@@ -81,7 +81,7 @@
                 <div class="w-1/2 sm:w-1/4 px-2 mb-2">
                     <div class="card text-center py-3 px-2 rounded-[10px] h-full relative overflow-hidden">
                         <div class="p-3">
-                            <ion-icon name="accessibility-outline" class="text-green-500 text-[28px] mb-1"></ion-icon>
+                            <i data-lucide="person-standing" class="text-green-500 mb-1" style="width:28px;height:28px;"></i>
                             <br>
                             <span class="text-center text-xs font-bold block mt-1 leading-[1.2]">Hadir</span>
                         </div>
@@ -98,7 +98,7 @@
                 <div class="w-1/2 sm:w-1/4 px-2 mb-2">
                     <div class="card text-center py-3 px-2 rounded-[10px] h-full relative overflow-hidden">
                         <div class="p-3">
-                            <ion-icon name="home-outline" class="text-blue-500 text-[28px] mb-1"></ion-icon>
+                            <i data-lucide="home" class="text-blue-500 mb-1" style="width:28px;height:28px;"></i>
                             <br>
                             <span class="text-center text-xs font-bold block mt-1 leading-[1.2]">WFH</span>
                         </div>
@@ -115,7 +115,7 @@
                 <div class="w-1/2 sm:w-1/4 px-2 mb-2">
                     <div class="card text-center py-3 px-2 rounded-[10px] h-full relative overflow-hidden">
                         <div class="p-3">
-                            <ion-icon name="hourglass-outline" class="text-yellow-500 text-[28px] mb-1"></ion-icon>
+                            <i data-lucide="hourglass" class="text-yellow-500 mb-1" style="width:28px;height:28px;"></i>
                             <br>
                             <span class="text-center text-xs font-bold block mt-1 leading-[1.2]">Lembur</span>
                         </div>
@@ -132,7 +132,7 @@
                 <div class="w-1/2 sm:w-1/4 px-2 mb-2">
                     <div class="card text-center py-3 px-2 rounded-[10px] h-full relative overflow-hidden">
                         <div class="p-3">
-                            <ion-icon name="document-text-outline" class="text-red-500 text-[28px] mb-1"></ion-icon>
+                            <i data-lucide="file-text" class="text-red-500 mb-1" style="width:28px;height:28px;"></i>
                             <br>
                             <span class="text-center text-xs font-bold block mt-1 leading-[1.2]">Izin / Sakit</span>
                         </div>
@@ -166,7 +166,7 @@
                                         <img src="{{ url($path) }}?v={{ time() }}" alt=""
                                             class="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] object-cover rounded-xl">
                                     @else
-                                        <ion-icon name="camera" class="text-[26px] sm:text-[30px]"></ion-icon>
+                                        <i data-lucide="camera" class="text-[26px] sm:text-[30px]"></i>
                                     @endif
                                 </div>
                                 <div class="leading-[1.3] min-w-0">
@@ -194,7 +194,7 @@
                                         <img src="{{ url($path) }}?v={{ time() }}" alt=""
                                             class="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] object-cover rounded-xl">
                                     @else
-                                        <ion-icon name="camera" class="text-[26px] sm:text-[30px]"></ion-icon>
+                                        <i data-lucide="camera" class="text-[26px] sm:text-[30px]"></i>
                                     @endif
                                 </div>
                                 <div class="leading-[1.3] min-w-0">
@@ -219,8 +219,8 @@
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2">
                             <span
-                                class="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-700"><ion-icon
-                                    name="document-text-outline"></ion-icon></span>
+                                class="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-700"><i
+                                    data-lucide="file-text"></i></span>
                             Laporan Perlu Persetujuan ({{ $pendingLaporanAtasan->count() }})
                         </h3>
                     </div>
@@ -265,8 +265,8 @@
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2">
                             <span
-                                class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><ion-icon
-                                    name="shield-checkmark-outline"></ion-icon></span>
+                                class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><i
+                                    data-lucide="shield-check"></i></span>
                             Perlu Persetujuan
                         </h3>
                     </div>
@@ -316,8 +316,8 @@
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2">
                             <span
-                                class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><ion-icon
-                                    name="home-outline"></ion-icon></span>
+                                class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><i
+                                    data-lucide="home"></i></span>
                             Perlu Tindakan
                         </h3>
                         <a href="/presensi/wfh" class="text-[11px] font-semibold text-sky-700">Lihat Semua</a>
@@ -396,8 +396,8 @@
         {{-- Alert H-1 WFH --}}
         @if (isset($wfhBesok) && $wfhBesok)
             <div id="alertH1" class="bg-sky-50 border border-sky-200 rounded-2xl p-3 mt-6 flex gap-3">
-                <div class="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shrink-0"><ion-icon
-                        name="alarm-outline" style="font-size:18px;"></ion-icon></div>
+                <div class="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shrink-0"><i
+                        data-lucide="alarm-clock" style="width:18px;height:18px;"></i></div>
                 <div class="flex-1">
                     <div class="text-[13px] font-bold text-sky-900">WFH Besok
                         ({{ date('d M Y', strtotime($wfhBesok->tgl_wfh)) }}) Sudah Disetujui</div>
@@ -516,7 +516,7 @@
                 });
                 return;
             }
-            
+
             var parts = jamIn.split(':');
             var jamInDate = new Date();
             jamInDate.setHours(parseInt(parts[0]), parseInt(parts[1]) || 0, parseInt(parts[2]) || 0, 0);
@@ -632,13 +632,7 @@
                 if (sectionHashes[key] === newHash) return;
                 sectionHashes[key] = newHash;
                 el.innerHTML = newHtml;
-                if (window.customElements && window.customElements.define) {
-                    el.querySelectorAll('ion-icon').forEach(icon => {
-                        if (!icon.shadowRoot) {
-                            icon.requestUpdate && icon.requestUpdate();
-                        }
-                    });
-                }
+                if (window.lucide) lucide.createIcons();
             }
 
             function pollRealtime() {
@@ -707,7 +701,7 @@
                                     updateSection(section, '', 'pendingAtasan');
                                 } else {
                                     let html =
-                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><ion-icon name="shield-checkmark-outline"></ion-icon></span>Perlu Persetujuan (' +
+                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><i data-lucide="shield-check"></i></span>Perlu Persetujuan (' +
                                         count +
                                         ')</h3><a href="/presensi/wfh" class="text-[11px] font-semibold text-amber-700">Lihat Semua</a></div>';
                                     data.pendingAtasan.forEach(function(p) {
@@ -756,7 +750,7 @@
                                     updateSection(section, '', 'pendingLaporan');
                                 } else {
                                     let html =
-                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-700"><ion-icon name="document-text-outline"></ion-icon></span>Laporan Perlu Persetujuan (' +
+                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-700"><i data-lucide="file-text"></i></span>Laporan Perlu Persetujuan (' +
                                         count + ')</h3></div>';
                                     data.pendingLaporanAtasan.forEach(function(p) {
                                         html +=
@@ -830,7 +824,7 @@
                                         'rejected': 'Laporan: Ditolak'
                                     };
                                     let html =
-                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><ion-icon name="home-outline"></ion-icon></span>Perlu Tindakan</h3><a href="/presensi/wfh" class="text-[11px] font-semibold text-sky-700">Lihat Semua</a></div>';
+                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700"><i data-lucide="home"></i></span>Perlu Tindakan</h3><a href="/presensi/wfh" class="text-[11px] font-semibold text-sky-700">Lihat Semua</a></div>';
                                     data.wfhSaya.forEach(function(w) {
                                         var b = badgeMap[w.status] || [
                                             'bg-gray-100 text-gray-700 border-gray-200', w.status

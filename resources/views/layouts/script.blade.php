@@ -5,8 +5,9 @@
 <script src="{{ asset('assets/js/lib/popper.min.js') }}"></script>
 <script src="{{ asset('assets/js/lib/bootstrap.min.js') }}"></script>
 
-{{-- Ionicons (self-hosted) --}}
-<script type="module" src="{{ asset('assets/js/ionicons/esm/ionicons.js') }}"></script>
+{{-- Lucide Icons --}}
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.lucide)lucide.createIcons();});</script>
 
 {{-- Owl Carousel --}}
 <script src="{{ asset('assets/js/plugins/owl-carousel/owl.carousel.min.js') }}"></script>

@@ -4,7 +4,7 @@
     <div class="appHeader bg-coklat text-light">
         <div class="left">
             <a href="/dashboard" class="headerButton goBack">
-                <ion-icon name="chevron-back-outline"></ion-icon>
+                <i data-lucide="chevron-left"></i>
             </a>
         </div>
         <div class="pageTitle">Notifikasi</div>
@@ -21,7 +21,7 @@
                 <div class="flex items-center gap-3 mt-5 mb-3 px-1">
                     <div class="flex-1 h-px bg-[#e7e5e4]"></div>
                     <span class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase whitespace-nowrap">
-                        <ion-icon name="calendar-outline" class="text-[12px] align-middle"></ion-icon>
+                        <i data-lucide="calendar" class="align-middle" style="width:12px;height:12px;"></i>
                         {{ $group['label'] }}
                     </span>
                     <div class="flex-1 h-px bg-[#e7e5e4]"></div>
@@ -39,7 +39,7 @@
                                 </div>
                                 <!-- Waktu -->
                                 <div class="text-[11px] text-[#a8a29e] mt-1.5 flex items-center gap-1">
-                                    <ion-icon name="time-outline" class="text-[12px]"></ion-icon>
+                                    <i data-lucide="clock" style="width:12px;height:12px;"></i>
                                     <span>{{ $n->created_at->diffForHumans() }}</span>
                                 </div>
                             </div>
@@ -54,7 +54,7 @@
             @empty
                 <!-- Tampilan Jika Kosong -->
                 <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm p-8 mt-6 text-center">
-                    <ion-icon name="notifications-off-outline" class="text-4xl text-[#a8a29e] mb-2"></ion-icon>
+                    <i data-lucide="bell-off" class="text-[#a8a29e] mb-2" style="width:32px;height:32px;"></i>
                     <div class="text-[13px] font-medium text-[#1c1917]">Belum ada notifikasi</div>
                     <p class="text-[11px] text-[#a8a29e] mt-1">Semua pemberitahuan terbaru akan muncul di sini.</p>
                 </div>

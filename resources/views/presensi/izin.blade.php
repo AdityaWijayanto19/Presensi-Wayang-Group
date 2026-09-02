@@ -19,14 +19,14 @@
         <div class="w-full px-3">
             @if ($messagesuccess)
                 <div class="flex items-center gap-2.5 bg-[#ecfdf5] border border-[#a7f3d0] text-[#065f46] text-[13px] font-medium rounded-xl py-2.5 px-3.5" id="alert-success">
-                    <ion-icon name="checkmark-circle" class="text-[18px] text-[#10b981] shrink-0"></ion-icon>
+                    <i data-lucide="circle-check" class="text-[#10b981] shrink-0" style="width:18px;height:18px;"></i>
                     <span class="flex-1 leading-tight">{{ $messagesuccess }}</span>
-                    <button onclick="this.parentElement.style.display='none'" class="shrink-0 w-6 h-6 rounded-full bg-white border border-[#a7f3d0] flex items-center justify-center text-[#065f46]"><ion-icon name="close-outline" style="font-size:14px;"></ion-icon></button>
+                    <button onclick="this.parentElement.style.display='none'" class="shrink-0 w-6 h-6 rounded-full bg-white border border-[#a7f3d0] flex items-center justify-center text-[#065f46]"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
                 </div>
             @endif
             @if ($messageerror)
                 <div class="flex items-center gap-2.5 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] text-[13px] font-medium rounded-xl py-2.5 px-3.5">
-                    <ion-icon name="alert-circle" class="text-[18px] text-[#ef4444] shrink-0"></ion-icon>
+                    <i data-lucide="circle-alert" class="text-[#ef4444] shrink-0" style="width:18px;height:18px;"></i>
                     <span class="flex-1 leading-tight">{{ $messageerror }}</span>
                 </div>
             @endif
@@ -39,7 +39,7 @@
             <div class="w-full px-3">
                 <div class="flex items-center justify-between">
                     <p class="text-[12px] font-semibold tracking-wide text-[#a8a29e] uppercase">
-                        <span class="inline-flex items-center gap-1.5"><ion-icon name="calendar-outline" class="text-[13px]"></ion-icon> {{ $dataizin->count() }} Data</span>
+                        <span class="inline-flex items-center gap-1.5"><i data-lucide="calendar" style="width:13px;height:13px;"></i> {{ $dataizin->count() }} Data</span>
                         <span class="mx-1.5 text-[#e7e5e4]">•</span>
                         <span class="text-[#78716c]">Terbaru di atas</span>
                     </p>
@@ -66,9 +66,9 @@
                     <div class="flex items-start gap-3">
                         <div class="presensi-icon-box {{ $isIzin ? 'icon-izin' : 'icon-sakit' }}">
                             @if ($isIzin)
-                                <ion-icon name="document-text-outline"></ion-icon>
+                                <i data-lucide="file-text"></i>
                             @else
-                                <ion-icon name="medkit-outline"></ion-icon>
+                                <i data-lucide="cross"></i>
                             @endif
                         </div>
 
@@ -81,7 +81,7 @@
                                 </span>
                             </div>
                             <div class="flex items-center gap-1.5 mt-1">
-                                <ion-icon name="calendar-outline" class="text-[12px] text-[#a8a29e]"></ion-icon>
+                                <i data-lucide="calendar" class="text-[#a8a29e]" style="width:12px;height:12px;"></i>
                                 <span class="text-[12px] font-medium text-[#78716c]">{{ $weekday }}</span>
                                 <span class="w-1 h-1 rounded-full bg-[#e7e5e4]"></span>
                                 <span class="text-[11px] text-[#a8a29e]">Diajukan</span>
@@ -92,7 +92,7 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-delete-card" aria-label="Hapus">
-                                <ion-icon name="trash-outline"></ion-icon>
+                                <i data-lucide="trash-2"></i>
                             </button>
                         </form>
                     </div>
@@ -107,25 +107,25 @@
                                 data-url="/presensi/showfile/{{ $d->file }}"
                                 data-filename="{{ $d->file }}"
                                 data-label="Dokumen {{ $label }} — {{ $displayDate }}">
-                                <ion-icon name="eye-outline"></ion-icon>
+                                <i data-lucide="eye"></i>
                                 Dokumen {{ $label }}
                                 <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#f5f5f4] border border-[#e7e5e4] text-[9px] font-bold tracking-wide text-[#57534e] uppercase">{{ $ext }}</span>
                             </button>
                         </div>
                         <span class="presensi-badge badge-uploaded">
-                            <ion-icon name="checkmark-circle" style="font-size:12px;"></ion-icon> Uploaded
+                            <i data-lucide="circle-check" style="width:12px;height:12px;"></i> Uploaded
                         </span>
                     </div>
                 </div>
             @empty
                 <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm p-8 mt-6 text-center">
                     <div class="w-20 h-20 rounded-2xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center mx-auto">
-                        <ion-icon name="document-text-outline" class="text-[40px] text-[#d6c7b8]"></ion-icon>
+                        <i data-lucide="file-text" class="text-[#d6c7b8]" style="width:40px;height:40px;"></i>
                     </div>
                     <h4 class="mt-4 text-[16px] font-bold text-[#1c1917]">Belum Ada Data Izin</h4>
                     <p class="mt-1.5 text-[13px] leading-relaxed text-[#78716c] max-w-[26ch] mx-auto">Data izin / sakit yang kamu ajukan akan muncul di sini. Tap tombol di bawah untuk mengajukan baru.</p>
                     <a href="/presensi/buatizin" class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full bg-coklat text-white text-[13px] font-semibold shadow-sm hover:bg-coklat-dark transition">
-                        <ion-icon name="add-circle-outline" style="font-size:16px;"></ion-icon> Ajukan Izin / Sakit
+                        <i data-lucide="plus" style="width:16px;height:16px;"></i> Ajukan Izin / Sakit
                     </a>
                 </div>
             @endforelse
@@ -135,7 +135,7 @@
     {{-- Floating Action Button --}}
     <div class="fab-button bottom-right" style="bottom: 78px; right: 16px;">
         <a href="/presensi/buatizin" class="fab bg-coklat text-white shadow-lg" aria-label="Tambah Data">
-            <ion-icon name="add-outline"></ion-icon>
+            <i data-lucide="plus"></i>
         </a>
     </div>
 

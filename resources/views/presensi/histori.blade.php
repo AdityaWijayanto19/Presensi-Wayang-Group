@@ -53,7 +53,7 @@
                 <div class="w-full px-2">
                     <div class="form-group">
                         <button class="btn btn-primary w-full" id="getdata">
-                            <ion-icon name="search"></ion-icon>
+                            <i data-lucide="search"></i>
                             Cari Data Presensi
                         </button>
                     </div>

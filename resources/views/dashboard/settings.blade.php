@@ -4,7 +4,7 @@
     <div class="appHeader bg-coklat text-light">
         <div class="left">
             <a href="/dashboard" class="headerButton goBack">
-                <ion-icon name="chevron-back-outline"></ion-icon>
+                <i data-lucide="chevron-left"></i>
             </a>
         </div>
         <div class="pageTitle">Pengaturan</div>
@@ -17,9 +17,9 @@
         {{-- Permission Toggles --}}
         @php
             $perms = [
-                'location' => ['icon' => 'location', 'title' => 'Izinkan Lokasi', 'desc' => 'Untuk presensi otomatis dan pelacakan lokasi WFH'],
+                'location' => ['icon' => 'map-pin', 'title' => 'Izinkan Lokasi', 'desc' => 'Untuk presensi otomatis dan pelacakan lokasi WFH'],
                 'camera' => ['icon' => 'camera', 'title' => 'Izinkan Kamera', 'desc' => 'Untuk foto selfie saat presensi masuk/pulang'],
-                'notifications' => ['icon' => 'notifications', 'title' => 'Izinkan Notifikasi', 'desc' => 'Untuk notifikasi WFH, pengingat, dan persetujuan'],
+                'notifications' => ['icon' => 'bell', 'title' => 'Izinkan Notifikasi', 'desc' => 'Untuk notifikasi WFH, pengingat, dan persetujuan'],
             ];
         @endphp
 
@@ -28,7 +28,7 @@
                 <div class="card-body p-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700">
-                            <ion-icon name="{{ $perm['icon'] }}-outline" class="text-xl"></ion-icon>
+                            <i data-lucide="{{ $perm['icon'] }}" class="text-xl"></i>
                         </div>
                         <div>
                             <div class="text-[14px] font-bold text-[#1c1917]">{{ $perm['title'] }}</div>
@@ -52,7 +52,7 @@
         <div class="card mt-6 border border-stone-200 rounded-2xl shadow-sm">
                 <a href="#" id="btnLogout" class="flex items-center gap-3 text-rose-600 no-underline p-4">
                     <div class="w-10 h-10 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center">
-                        <ion-icon name="log-out-outline" class="text-xl"></ion-icon>
+                        <i data-lucide="log-out" class="text-xl"></i>
                     </div>
                     <div class="text-[14px] font-bold">Keluar</div>
                 </a>

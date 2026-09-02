@@ -33,7 +33,7 @@
     <link rel="manifest"
         href="/manifest.json">
 
-    <link rel="modulepreload" href="{{ asset('assets/js/ionicons/esm/ionicons.js') }}">
+    {{-- Lucide Icons loaded via script.blade.php --}}
 
     <link rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -92,7 +92,7 @@
         ::-webkit-scrollbar { width: 0; }
         button { outline: 0 !important; }
         button:hover, button:active, button:focus { outline: 0 !important; }
-        ion-icon { --ionicon-stroke-width: 32px; }
+        i[data-lucide] { width: 22px; height: 22px; stroke-width: 2; vertical-align: middle; }
 
         /* TYPOGRAPHY */
         :is(h1, h2, h3, h4, h5, h6) {
@@ -132,10 +132,11 @@
             align-items: center;
             position: absolute;
         }
-        .appHeader .left ion-icon,
-        .appHeader .right ion-icon {
-            font-size: 26px;
-            --ionicon-stroke-width: 36px;
+        .appHeader .left i[data-lucide],
+        .appHeader .right i[data-lucide] {
+            width: 26px;
+            height: 26px;
+            stroke-width: 2.5;
         }
         .appHeader .left .headerButton,
         .appHeader .right .headerButton {
@@ -207,11 +208,12 @@
             flex-direction: column;
             align-items: center;
         }
-        .appBottomMenu .item ion-icon {
+        .appBottomMenu .item i[data-lucide] {
             display: block;
             margin-top: 1px;
             margin-bottom: 3px;
-            font-size: 26px;
+            width: 26px;
+            height: 26px;
             line-height: 1em;
             color: #141515;
             transition: 0.1s all;
@@ -227,12 +229,12 @@
             opacity: 0.8;
             text-decoration: none !important;
         }
-        .appBottomMenu .item.active ion-icon,
+        .appBottomMenu .item.active i[data-lucide],
         .appBottomMenu .item.active strong {
             color: #7a5234 !important;
             font-weight: 500;
         }
-        .appBottomMenu .item:hover ion-icon,
+        .appBottomMenu .item:hover i[data-lucide],
         .appBottomMenu .item:hover strong {
             color: #bdb4b4;
         }
@@ -323,8 +325,9 @@
             border-width: 2px;
             cursor: pointer;
         }
-        .btn ion-icon {
-            font-size: 22px;
+        .btn i[data-lucide] {
+            width: 22px;
+            height: 22px;
             margin-right: 10px;
             margin-top: -2px;
             font-weight: 700;
@@ -334,7 +337,7 @@
             padding: 3px 24px;
             font-size: 18px;
         }
-        .btn-lg ion-icon { font-size: 26px; }
+        .btn-lg i[data-lucide] { width: 26px; height: 26px; }
         .btn-primary {
             background: #91623d !important;
             border-color: #91623d !important;
@@ -454,10 +457,11 @@
             border-radius: 100%;
             color: #fff !important;
         }
-        .fab-button .fab > ion-icon {
-            font-size: 26px;
+        .fab-button .fab > i[data-lucide] {
+            width: 26px;
+            height: 26px;
             transition: 0.2s all;
-            --ionicon-stroke-width: 42px;
+            stroke-width: 2.5;
         }
         .fab-button.bottom-right {
             position: fixed;
@@ -616,7 +620,7 @@
             flex-shrink: 0;
             border: 1.5px solid;
         }
-        .presensi-icon-box ion-icon { font-size: 22px; --ionicon-stroke-width: 28px; }
+        .presensi-icon-box i[data-lucide] { width: 22px; height: 22px; stroke-width: 1.75; }
         .icon-izin { background: #fff7ed; border-color: #ffedd5; color: #c0842a; }
         .icon-sakit { background: #fff1f2; border-color: #ffe4e6; color: #e11d48; }
         .icon-lembur { background: #f5f3ff; border-color: #ede9fe; color: #7c3aed; }
@@ -649,7 +653,7 @@
             background: #fdf8f4; transform: translateY(-1px);
         }
         .file-pill:active { transform: translateY(0); }
-        .file-pill ion-icon { font-size: 15px; flex-shrink: 0; }
+        .file-pill i[data-lucide] { width: 15px; height: 15px; flex-shrink: 0; }
         .presensi-divider { height: 1px; background: #f5f0eb; margin: 10px 0 10px; }
         .btn-delete-card {
             width: 32px; height: 32px; border-radius: 999px;
@@ -658,7 +662,7 @@
             transition: all 0.15s ease; cursor: pointer;
         }
         .btn-delete-card:hover { background: #e11d48; border-color: #e11d48; color: #fff; }
-        .btn-delete-card ion-icon { font-size: 15px; --ionicon-stroke-width: 32px; }
+        .btn-delete-card i[data-lucide] { width: 15px; height: 15px; }
         /* FILE PREVIEW MODAL */
         .file-modal-backdrop {
             position: fixed; inset: 0; z-index: 99999;
@@ -796,7 +800,7 @@
             <div class="file-modal-header">
                 <div class="flex items-center gap-3 min-w-0">
                     <div id="fileModalIcon" class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#fdf8f4] border border-[#f0ece8] text-coklat shrink-0">
-                        <ion-icon name="document-text-outline" style="font-size:18px;"></ion-icon>
+                        <i data-lucide="file-text" style="width:18px;height:18px;"></i>
                     </div>
                     <div class="min-w-0">
                         <div id="fileModalTitle" class="text-[14px] font-bold text-[#1a1a1a] leading-tight truncate">Preview Dokumen</div>
@@ -804,21 +808,21 @@
                     </div>
                 </div>
                 <button type="button" class="btn-modal-close shrink-0" id="fileModalClose" aria-label="Tutup">
-                    <ion-icon name="close-outline" style="font-size:20px;"></ion-icon>
+                    <i data-lucide="x" style="width:20px;height:20px;"></i>
                 </button>
             </div>
             <div class="file-modal-body" id="fileModalBody">
                 <div id="fileModalLoader" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-                    <ion-icon name="hourglass-outline" class="text-[36px] text-[#d6c7b8] animate-pulse"></ion-icon>
+                    <i data-lucide="hourglass" class="text-[36px] text-[#d6c7b8] animate-pulse" style="width:36px;height:36px;"></i>
                     <p class="text-[13px] text-[#78716c]">Memuat preview...</p>
                 </div>
             </div>
             <div class="file-modal-footer">
                 <a id="fileModalDownload" href="#" download class="btn-modal btn-modal-secondary" rel="noopener">
-                    <ion-icon name="download-outline"></ion-icon> Download
+                    <i data-lucide="download"></i> Download
                 </a>
                 <a id="fileModalOpenTab" href="#" target="_blank" rel="noopener" class="btn-modal btn-modal-primary">
-                    <ion-icon name="open-outline"></ion-icon> Buka di Tab Baru
+                    <i data-lucide="external-link"></i> Buka di Tab Baru
                 </a>
             </div>
         </div>
@@ -856,13 +860,13 @@
                 if (isDoc) {
                     openTabEl.style.display = 'none';
                     downloadEl.style.display = '';
-                    downloadEl.innerHTML = '<ion-icon name="download-outline"></ion-icon> Download';
+                    downloadEl.innerHTML = '<i data-lucide="download"></i> Download';
                 } else {
                     openTabEl.href = url;
                     openTabEl.style.display = '';
                     downloadEl.style.display = '';
-                    downloadEl.innerHTML = '<ion-icon name="download-outline"></ion-icon> Download';
-                    openTabEl.innerHTML = '<ion-icon name="open-outline"></ion-icon> Buka di Tab Baru';
+                    downloadEl.innerHTML = '<i data-lucide="download"></i> Download';
+                    openTabEl.innerHTML = '<i data-lucide="external-link"></i> Buka di Tab Baru';
                 }
 
                 backdrop.classList.add('open');
@@ -888,21 +892,22 @@
                 }
                 // doc/docx and others: show clean file-card fallback (only PDF & images get iframe preview)
                 showDocFallback(ext, filename, label);
+                if (window.lucide) lucide.createIcons();
             }
 
             function showDocFallback(ext, filename, label) {
                 const isDoc = ['doc','docx'].includes(ext);
                 const title = isDoc ? 'File Word — Preview terbatas' : 'Preview tidak tersedia untuk .' + ext;
                 const desc = isDoc
-                    ? 'Dokumen <b>' + filename + '</b> berformat <b>.' + ext + '</b> tidak bisa preview langsung di browser. Silakan <b>Download</b> untuk buka di Microsoft Word. <br><br><span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#7a5234] bg-[#fdf8f4] border border-[#f0ece8] rounded-full px-2.5 py-1"><ion-icon name="bulb-outline"></ion-icon> Tips: upload sebagai <b>PDF</b> agar bisa preview langsung di sini.</span>'
+                    ? 'Dokumen <b>' + filename + '</b> berformat <b>.' + ext + '</b> tidak bisa preview langsung di browser. Silakan <b>Download</b> untuk buka di Microsoft Word. <br><br><span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#7a5234] bg-[#fdf8f4] border border-[#f0ece8] rounded-full px-2.5 py-1"><i data-lucide="lightbulb" style="width:14px;height:14px;"></i> Tips: upload sebagai <b>PDF</b> agar bisa preview langsung di sini.</span>'
                     : 'File .' + ext + ' tidak bisa di-preview langsung. Silakan buka di tab baru atau download.';
                 body.innerHTML = '<div class="flex flex-col items-center gap-4 p-6 text-center">'
-                    + '<div class="w-20 h-20 rounded-2xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center text-coklat shadow-sm"><ion-icon name="document-text-outline" style="font-size:36px;"></ion-icon></div>'
+                    + '<div class="w-20 h-20 rounded-2xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center text-coklat shadow-sm"><i data-lucide="file-text" style="width:36px;height:36px;"></i></div>'
                     + '<div class="w-full max-w-[32ch]">'
                     + '<p class="text-[14px] font-bold text-[#1c1917]">' + title + '</p>'
                     + '<p class="mt-1.5 text-[12px] leading-relaxed text-[#57534e]">' + desc + '</p>'
                     + '<div class="mt-3 inline-flex items-center gap-2 bg-white border border-[#f0ece8] rounded-full px-3 py-1.5 shadow-sm">'
-                    + '<ion-icon name="document-outline" class="text-[#a8a29e]"></ion-icon>'
+                    + '<i data-lucide="file" class="text-[#a8a29e]" style="width:16px;height:16px;"></i>'
                     + '<span class="text-[11px] font-mono font-semibold text-[#44403c] truncate max-w-[18ch]">' + filename + '</span>'
                     + '<span class="inline-flex items-center justify-center min-w-[28px] h-5 px-1.5 rounded-full bg-[#1c1917] text-white text-[10px] font-bold uppercase">' + ext + '</span>'
                     + '</div>'
@@ -920,7 +925,7 @@
                 // restore footer buttons for next preview
                 downloadEl.style.display = '';
                 openTabEl.style.display = '';
-                setTimeout(() => { body.innerHTML = '<div id="fileModalLoader" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center"><ion-icon name="hourglass-outline" class="text-[36px] text-[#d6c7b8] animate-pulse"></ion-icon><p class="text-[13px] text-[#78716c]">Memuat preview...</p></div>'; }, 200);
+                setTimeout(() => { body.innerHTML = '<div id="fileModalLoader" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center"><i data-lucide="hourglass" class="text-[#d6c7b8] animate-pulse" style="width:36px;height:36px;"></i><p class="text-[13px] text-[#78716c]">Memuat preview...</p></div>'; if(window.lucide)lucide.createIcons(); }, 200);
             }
 
             document.addEventListener('click', function(e) {
@@ -950,9 +955,10 @@
                     document.body.style.overflow = 'hidden';
                     const safe = deskripsi.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
                     body.innerHTML = '<div class="p-5">'
-                        + '<div class="flex items-center gap-2 mb-3"><div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700"><ion-icon name="clipboard-outline" style="font-size:18px;"></ion-icon></div><div><div class="text-[13px] font-bold text-[#1c1917]">' + label + '</div><div class="text-[11px] text-[#78716c]">' + tgl + '</div></div></div>'
+                        + '<div class="flex items-center gap-2 mb-3"><div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700"><i data-lucide="clipboard" style="width:18px;height:18px;"></i></div><div><div class="text-[13px] font-bold text-[#1c1917]">' + label + '</div><div class="text-[11px] text-[#78716c]">' + tgl + '</div></div></div>'
                         + '<div class="bg-[#fdf8f4] border border-[#f0ece8] rounded-xl p-4 text-[13px] leading-relaxed text-[#1c1917] whitespace-pre-wrap" style="max-height:50vh; overflow:auto;">' + safe + '</div>'
                         + '</div>';
+                    if (window.lucide) lucide.createIcons();
                 }
             }, true);
             // Direct open in new tab — explicit handler to avoid popup blocker / href timing issues

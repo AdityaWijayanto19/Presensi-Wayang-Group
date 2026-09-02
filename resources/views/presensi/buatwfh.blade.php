@@ -4,7 +4,7 @@
     <div class="appHeader bg-coklat text-light">
         <div class="left">
             <a href="/presensi/wfh" class="headerButton goBack">
-                <ion-icon name="chevron-back-outline"></ion-icon>
+                <i data-lucide="chevron-left"></i>
             </a>
         </div>
         <div class="pageTitle">Pengajuan Work From Home</div>
@@ -41,7 +41,7 @@
                     <div class="flex items-center gap-3">
                         <div
                             class="w-10 h-10 rounded-xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center text-coklat">
-                            <ion-icon name="person-outline" style="font-size:18px;"></ion-icon>
+                            <i data-lucide="user" style="width:18px;height:18px;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase">Pengaju</div>
@@ -114,8 +114,8 @@
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 flex gap-2.5">
-                    <ion-icon name="information-circle-outline"
-                        class="text-amber-600 text-[18px] shrink-0 mt-0.5"></ion-icon>
+                    <i data-lucide="info"
+                        class="text-amber-600 shrink-0 mt-0.5" style="width:18px;height:18px;"></i>
                     <p class="text-[11px] leading-relaxed text-amber-800">Setelah submit, Surat WFH menunggu
                         persetujuan.
                         Setelah disetujui, kamu bisa input laporan setelah absen pulang.</p>
@@ -123,7 +123,7 @@
 
                 <div class="form-group mt-4">
                     <button type="submit" class="btn btn-primary w-full">
-                        <ion-icon name="paper-plane-outline" style="margin-right:6px;"></ion-icon> Ajukan WFH
+                        <i data-lucide="send" style="margin-right:6px;"></i> Ajukan WFH
                     </button>
                 </div>
             </form>

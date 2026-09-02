@@ -4,7 +4,7 @@
     <div class="appHeader bg-coklat text-light">
         <div class="left">
             <a href="/presensi/wfh" class="headerButton goBack">
-                <ion-icon name="chevron-back-outline"></ion-icon>
+                <i data-lucide="chevron-left"></i>
             </a>
         </div>
         <div class="pageTitle">Input Laporan WFH</div>
@@ -53,7 +53,7 @@
                 <div class="bg-white rounded-2xl border border-[#f0ece8] p-4 mb-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#f0f9ff] border border-[#bae6fd] flex items-center justify-center text-sky-600">
-                            <ion-icon name="calendar-outline" style="font-size:18px;"></ion-icon>
+                            <i data-lucide="calendar" style="width:18px;height:18px;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase">Hari & Tanggal</div>
@@ -67,7 +67,7 @@
                 <div class="bg-white rounded-2xl border border-[#f0ece8] p-4 mb-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#fdf8f4] border border-[#f0ece8] flex items-center justify-center text-coklat">
-                            <ion-icon name="person-outline" style="font-size:18px;"></ion-icon>
+                            <i data-lucide="user" style="width:18px;height:18px;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase">Telah Dilaksanakan Oleh</div>
@@ -81,7 +81,7 @@
                 <div class="bg-white rounded-2xl border border-[#f0ece8] p-4 mb-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] flex items-center justify-center text-green-600">
-                            <ion-icon name="location-outline" style="font-size:18px;"></ion-icon>
+                            <i data-lucide="map-pin" style="width:18px;height:18px;"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[11px] font-semibold tracking-wide text-[#a8a29e] uppercase">Live Location</div>
@@ -109,7 +109,7 @@
                 {{-- Approved By (Info) --}}
                 <div class="bg-[#f5f3ff] border border-[#ddd6fe] rounded-xl p-3 mb-3">
                     <div class="flex items-center gap-2 mb-2">
-                        <ion-icon name="shield-checkmark-outline" class="text-violet-600 text-[16px]"></ion-icon>
+                        <i data-lucide="shield-check" class="text-violet-600" style="width:16px;height:16px;"></i>
                         <span class="text-[12px] font-semibold text-violet-800">Proses Persetujuan</span>
                     </div>
                     <div class="flex flex-col gap-1.5">
@@ -127,7 +127,7 @@
 
                 <div class="form-group mt-4">
                     <button type="submit" class="btn btn-primary w-full">
-                        <ion-icon name="checkmark-circle-outline" style="margin-right:6px;"></ion-icon> Kirim Laporan
+                        <i data-lucide="circle-check" style="margin-right:6px;"></i> Kirim Laporan
                     </button>
                 </div>
             </form>

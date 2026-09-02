@@ -19,14 +19,14 @@
         <div class="w-full px-3">
             @if ($messagesuccess)
                 <div class="flex items-center gap-2.5 bg-[#ecfdf5] border border-[#a7f3d0] text-[#065f46] text-[13px] font-medium rounded-xl py-2.5 px-3.5" id="alert-success">
-                    <ion-icon name="checkmark-circle" class="text-[18px] text-[#10b981] shrink-0"></ion-icon>
+                    <i data-lucide="circle-check" class="text-[#10b981] shrink-0" style="width:18px;height:18px;"></i>
                     <span class="flex-1 leading-tight">{{ $messagesuccess }}</span>
-                    <button onclick="this.parentElement.style.display='none'" class="shrink-0 w-6 h-6 rounded-full bg-white border border-[#a7f3d0] flex items-center justify-center text-[#065f46]"><ion-icon name="close-outline" style="font-size:14px;"></ion-icon></button>
+                    <button onclick="this.parentElement.style.display='none'" class="shrink-0 w-6 h-6 rounded-full bg-white border border-[#a7f3d0] flex items-center justify-center text-[#065f46]"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
                 </div>
             @endif
             @if ($messageerror)
                 <div class="flex items-center gap-2.5 bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] text-[13px] font-medium rounded-xl py-2.5 px-3.5">
-                    <ion-icon name="alert-circle" class="text-[18px] text-[#ef4444] shrink-0"></ion-icon>
+                    <i data-lucide="circle-alert" class="text-[#ef4444] shrink-0" style="width:18px;height:18px;"></i>
                     <span class="flex-1 leading-tight">{{ $messageerror }}</span>
                 </div>
             @endif
@@ -42,7 +42,7 @@
             <div class="w-full px-3">
                 <div class="flex items-center justify-between">
                     <p class="text-[12px] font-semibold tracking-wide text-[#a8a29e] uppercase">
-                        <span class="inline-flex items-center gap-1.5"><ion-icon name="checkmark-done-outline" class="text-[13px] text-emerald-600"></ion-icon> {{ $datawfh->count() }} Data</span>
+                        <span class="inline-flex items-center gap-1.5"><i data-lucide="check-check" class="text-emerald-600" style="width:13px;height:13px;"></i> {{ $datawfh->count() }} Data</span>
                         <span class="mx-1.5 text-[#e7e5e4]">•</span>
                         @if ($approvedCount > 0)
                             <span class="text-emerald-700">{{ $approvedCount }} Disetujui</span>
@@ -93,7 +93,7 @@
                 <div class="presensi-card mb-2.5">
                     <div class="flex items-start gap-3">
                         <div class="presensi-icon-box icon-wfh">
-                            <ion-icon name="home-outline"></ion-icon>
+                            <i data-lucide="home"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
@@ -101,7 +101,7 @@
                                 <span class="presensi-badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                             </div>
                             <div class="flex items-center gap-1.5 mt-1.5">
-                                <ion-icon name="calendar-outline" class="text-[12px] text-[#a8a29e]"></ion-icon>
+                                <i data-lucide="calendar" class="text-[#a8a29e]" style="width:12px;height:12px;"></i>
                                 <span class="text-[12px] font-medium text-[#78716c]">{{ $weekday }}</span>
                             </div>
                         </div>
@@ -112,17 +112,17 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         @if($pdfUrl !== "#")
                             <button type="button" class="file-pill js-preview" data-url="{{ $pdfUrl }}" data-filename="{{ $pdfName }}" data-label="Form WFH — {{ $displayDate }}">
-                                <ion-icon name="document-outline"></ion-icon> Form
+                                <i data-lucide="file"></i> Form
                                 <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#f0f9ff] border border-[#bae6fd] text-[9px] font-bold text-[#0369a1] uppercase">{{ strtolower(pathinfo($pdfName, PATHINFO_EXTENSION)) }}</span>
                             </button>
                         @endif
                         @if($laporanUrl)
                             <button type="button" class="file-pill js-preview" data-url="{{ $laporanUrl }}" data-filename="{{ basename($laporanUrl) }}" data-label="Laporan WFH — {{ $displayDate }}">
-                                <ion-icon name="clipboard-outline"></ion-icon> Laporan
+                                <i data-lucide="clipboard"></i> Laporan
                             </button>
                         @elseif(!empty($d->laporan_deskripsi))
                             <button type="button" class="file-pill js-preview-laporan" data-deskripsi="{{ $d->laporan_deskripsi }}" data-tgl="{{ $displayDate }}" data-label="Laporan WFH — {{ $displayDate }}">
-                                <ion-icon name="clipboard-outline"></ion-icon> Laporan
+                                <i data-lucide="clipboard"></i> Laporan
                             </button>
                         @endif
                     </div>
@@ -130,12 +130,12 @@
             @empty
                 <div class="bg-white rounded-2xl border border-[#f0ece8] shadow-sm p-8 mt-6 text-center">
                     <div class="w-20 h-20 rounded-2xl bg-[#f0f9ff] border border-[#e0f2fe] flex items-center justify-center mx-auto text-[#0284c7]">
-                        <ion-icon name="home-outline" class="text-[40px]"></ion-icon>
+                        <i data-lucide="home" class="text-[#0284c7]" style="width:40px;height:40px;"></i>
                     </div>
                     <h4 class="mt-4 text-[16px] font-bold text-[#1c1917]">Tidak Ada Data WFH</h4>
                     <p class="mt-1.5 text-[13px] leading-relaxed text-[#78716c] max-w-[28ch] mx-auto">Data WFH yang sudah disetujui akan muncul di sini. Persetujuan dengan status pending hanya di dashboard.</p>
                     <a href="/presensi/buatwfh" class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full bg-coklat text-white text-[13px] font-semibold shadow-sm hover:bg-coklat-dark transition">
-                        <ion-icon name="add-circle-outline" style="font-size:16px;"></ion-icon> Ajukan WFH
+                        <i data-lucide="plus" style="width:16px;height:16px;"></i> Ajukan WFH
                     </a>
                 </div>
             @endforelse
@@ -144,7 +144,7 @@
 
     <div class="fab-button bottom-right" style="bottom: 78px; right: 16px;">
         <a href="/presensi/buatwfh" class="fab bg-coklat text-white shadow-lg" aria-label="Tambah Data">
-            <ion-icon name="add-outline"></ion-icon>
+            <i data-lucide="plus"></i>
         </a>
     </div>
 

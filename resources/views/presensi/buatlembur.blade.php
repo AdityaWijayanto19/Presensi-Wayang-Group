@@ -5,7 +5,7 @@
     <div class="appHeader bg-coklat text-light">
         <div class="left">
             <a href="/presensi/lembur" class="headerButton goBack">
-                <ion-icon name="chevron-back-outline"></ion-icon>
+                <i data-lucide="chevron-left"></i>
             </a>
         </div>
         <div class="pageTitle">Kirim Dokumen Lembur</div>
