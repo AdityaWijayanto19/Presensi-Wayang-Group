@@ -81,7 +81,8 @@
                 <div class="w-1/2 sm:w-1/4 px-2 mb-2">
                     <div class="card text-center py-3 px-2 rounded-[10px] h-full relative overflow-hidden">
                         <div class="p-3">
-                            <i data-lucide="person-standing" class="text-green-500 mb-1" style="width:28px;height:28px;"></i>
+                            <i data-lucide="person-standing" class="text-green-500 mb-1"
+                                style="width:28px;height:28px;"></i>
                             <br>
                             <span class="text-center text-xs font-bold block mt-1 leading-[1.2]">Hadir</span>
                         </div>
@@ -237,20 +238,24 @@
                                             {{ $p->unit }} ({{ $p->perusahaan }})</div>
                                         <div class="text-[11px] text-[#57534e] mt-1">Laporan WFH menunggu persetujuan Anda
                                         </div>
-                                        @if(!empty($p->laporan_file))
-                                            <button type="button" class="file-pill js-preview mt-2"
-                                                data-url="{{ Storage::url($p->laporan_file) }}"
-                                                data-filename="{{ basename($p->laporan_file) }}"
-                                                data-label="Laporan WFH — {{ $p->nama_lengkap }} {{ date('d M Y', strtotime($p->tgl_wfh)) }}">
-                                                <i data-lucide="file-text"></i> Preview Laporan
-                                            </button>
+                                        @if (!empty($p->laporan_file))
+                                            <div class="mt-1">
+                                                <button type="button"
+                                                    class="text-[11px] text-sky-700 hover:underline cursor-pointer js-preview"
+                                                    data-url="{{ Storage::url($p->laporan_file) }}"
+                                                    data-filename="{{ basename($p->laporan_file) }}"
+                                                    data-label="Laporan WFH — {{ $p->nama_lengkap }} {{ date('d M Y', strtotime($p->tgl_wfh)) }}">Form
+                                                    Laporan</button>
+                                            </div>
                                         @elseif(!empty($p->laporan_deskripsi))
-                                            <button type="button" class="file-pill js-preview-laporan mt-2"
-                                                data-deskripsi="{{ $p->laporan_deskripsi }}"
-                                                data-tgl="{{ date('d M Y', strtotime($p->tgl_wfh)) }}"
-                                                data-label="Laporan WFH — {{ $p->nama_lengkap }}">
-                                                <i data-lucide="clipboard"></i> Laporan
-                                            </button>
+                                            <div class="mt-1">
+                                                <button type="button"
+                                                    class="text-[11px] text-sky-700 hover:underline cursor-pointer js-preview-laporan"
+                                                    data-deskripsi="{{ $p->laporan_deskripsi }}"
+                                                    data-tgl="{{ date('d M Y', strtotime($p->tgl_wfh)) }}"
+                                                    data-label="Laporan WFH — {{ $p->nama_lengkap }}">Form
+                                                    Laporan</button>
+                                            </div>
                                         @endif
                                     </div>
                                     <div class="flex flex-col gap-1.5 shrink-0">
@@ -258,13 +263,11 @@
                                             method="POST">
                                             @csrf
                                             <button type="submit"
-                                                class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] w-full">Setujui
-                                                Laporan</button>
+                                                class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] w-full">Setujui</button>
                                         </form>
                                         <button type="button"
                                             class="btn btn-sm bg-white border border-rose-200 text-rose-700 rounded-full px-3 py-1 text-[11px] w-full"
-                                            onclick="(function(id){ Swal.fire({title:'Tolak Laporan WFH?', input:'textarea', inputPlaceholder:'Alasan...', showCancelButton:true, confirmButtonColor:'#e11d48', confirmButtonText:'Tolak', inputValidator:v=>{if(!v||v.trim().length<5) return 'Minimal 5 karakter';}}).then(r=>{if(r.isConfirmed){ const f=document.createElement('form'); f.method='POST'; f.action='/presensi/wfh/'+id+'/reject-laporan-atasan'; const c=document.createElement('input'); c.type='hidden'; c.name='_token'; c.value='{{ csrf_token() }}'; const re=document.createElement('input'); re.type='hidden'; re.name='rejected_reason'; re.value=r.value; f.appendChild(c); f.appendChild(re); document.body.appendChild(f); f.submit();}}); })({{ $p->id }})">Tolak
-                                            Laporan</button>
+                                            onclick="(function(id){ Swal.fire({title:'Tolak Laporan WFH?', input:'textarea', inputPlaceholder:'Alasan...', showCancelButton:true, confirmButtonColor:'#e11d48', confirmButtonText:'Tolak', inputValidator:v=>{if(!v||v.trim().length<5) return 'Minimal 5 karakter';}}).then(r=>{if(r.isConfirmed){ const f=document.createElement('form'); f.method='POST'; f.action='/presensi/wfh/'+id+'/reject-laporan-atasan'; const c=document.createElement('input'); c.type='hidden'; c.name='_token'; c.value='{{ csrf_token() }}'; const re=document.createElement('input'); re.type='hidden'; re.name='rejected_reason'; re.value=r.value; f.appendChild(c); f.appendChild(re); document.body.appendChild(f); f.submit();}}); })({{ $p->id }})">Tolak</button>
                                     </div>
                                 </div>
                             </div>
@@ -315,7 +318,7 @@
                                     @if ($pdfUrl)
                                         <button type="button"
                                             class="text-[11px] text-sky-700 hover:underline cursor-pointer"
-                                            onclick="window.open('{{ $pdfUrl }}','_blank')">Preview Form</button>
+                                            onclick="window.open('{{ $pdfUrl }}','_blank')">Form Pengajuan</button>
                                     @endif
                                 </div>
                             </div>
@@ -704,7 +707,9 @@
                             }).join('');
                             updateSection(list, notifHtml, 'notifList');
                         } else if (list) {
-                            updateSection(list, '<div class="p-6 text-center text-[12px] text-[#a8a29e]">Tidak ada notifikasi</div>', 'notifList');
+                            updateSection(list,
+                                '<div class="p-6 text-center text-[12px] text-[#a8a29e]">Tidak ada notifikasi</div>',
+                                'notifList');
                         }
 
                         // 4. Update pending atasan + re-render cards
@@ -737,7 +742,7 @@
                                             p.id + '">Tolak</button></div></div>' + (p.pdf_form_path ?
                                                 '<div class="flex"><button type="button" class="text-[11px] text-sky-700 hover:underline cursor-pointer" onclick="window.open(\'/storage/' +
                                                 p.pdf_form_path +
-                                                '\',\'_blank\')">Preview Form</button></div>' : '') +
+                                                '\',\'_blank\')">Form Pengajuan</button></div>' : '') +
                                             '</div></div>';
                                     });
                                     html += '</div>';
@@ -770,9 +775,18 @@
                                         var previewBtn = '';
                                         if (p.laporan_file) {
                                             var laporanUrl = '/storage/' + p.laporan_file;
-                                            previewBtn = '<button type="button" class="file-pill js-preview mt-2" data-url="' + laporanUrl + '" data-filename="' + (p.laporan_file.split('/').pop() || '') + '" data-label="Laporan WFH — ' + (p.nama_lengkap || '') + '"><i data-lucide="file-text"></i> Preview Laporan</button>';
+                                            previewBtn =
+                                                '<div class="mt-1"><button type="button" class="text-[11px] text-sky-700 hover:underline cursor-pointer js-preview" data-url="' +
+                                                laporanUrl + '" data-filename="' + (p.laporan_file.split(
+                                                    '/').pop() || '') + '" data-label="Laporan WFH — ' + (p
+                                                    .nama_lengkap || '') + '">Form Laporan</button></div>';
                                         } else if (p.laporan_deskripsi) {
-                                            previewBtn = '<button type="button" class="file-pill js-preview-laporan mt-2" data-deskripsi="' + (p.laporan_deskripsi || '').replace(/"/g, '&quot;') + '" data-tgl="' + (p.tgl_wfh || '') + '" data-label="Laporan WFH — ' + (p.nama_lengkap || '') + '"><i data-lucide="clipboard"></i> Laporan</button>';
+                                            previewBtn =
+                                                '<div class="mt-1"><button type="button" class="text-[11px] text-sky-700 hover:underline cursor-pointer js-preview-laporan" data-deskripsi="' +
+                                                (p.laporan_deskripsi || '').replace(/"/g, '&quot;') +
+                                                '" data-tgl="' + (p.tgl_wfh || '') +
+                                                '" data-label="Laporan WFH — ' + (p.nama_lengkap || '') +
+                                                '">Form Laporan</button></div>';
                                         }
                                         html +=
                                             '<div class="card mb-2 border-l-4 border-l-violet-400 bg-violet-50/50"><div class="card-body p-3"><div class="flex items-start justify-between gap-3"><div class="flex-1 min-w-0"><div class="text-[13px] font-bold text-[#1c1917]">' +
@@ -782,12 +796,14 @@
                                             '</span></div><div class="text-[11px] text-[#78716c]">' + (p
                                                 .tgl_wfh || '') + ' • ' + (p.unit || '') + ' (' + (p
                                                 .perusahaan || '') +
-                                            ')</div><div class="text-[11px] text-[#57534e] mt-1">Laporan WFH menunggu persetujuan Anda</div>' + previewBtn + '</div><div class="flex flex-col gap-1.5 shrink-0"><form action="/presensi/wfh/' +
+                                            ')</div><div class="text-[11px] text-[#57534e] mt-1">Laporan WFH menunggu persetujuan Anda</div>' +
+                                            previewBtn +
+                                            '</div><div class="flex flex-col gap-1.5 shrink-0"><form action="/presensi/wfh/' +
                                             p.id +
                                             '/approve-laporan-atasan" method="POST"><input type="hidden" name="_token" value="' +
                                             CSRF +
-                                            '"><button type="submit" class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] w-full">Setujui Laporan</button></form><button type="button" class="btn btn-sm bg-white border border-rose-200 text-rose-700 rounded-full px-3 py-1 text-[11px] w-full btn-reject-laporan-atasan-dynamic" data-id="' +
-                                            p.id + '">Tolak Laporan</button></div></div></div></div>';
+                                            '"><button type="submit" class="btn btn-sm bg-emerald-500 text-white rounded-full px-3 py-1 text-[11px] w-full">Setujui</button></form><button type="button" class="btn btn-sm bg-white border border-rose-200 text-rose-700 rounded-full px-3 py-1 text-[11px] w-full btn-reject-laporan-atasan-dynamic" data-id="' +
+                                            p.id + '">Tolak</button></div></div></div></div>';
                                     });
                                     html += '</div>';
                                     updateSection(section, html, 'pendingLaporan');
@@ -903,7 +919,9 @@
                         }
 
                         isPolling = false;
-                    }).catch(() => { isPolling = false; });
+                    }).catch(() => {
+                        isPolling = false;
+                    });
             }
 
             // Poll setiap 5 detik
