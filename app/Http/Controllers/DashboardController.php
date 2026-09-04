@@ -160,11 +160,11 @@ class DashboardController extends Controller
             ->whereRaw('YEAR(tgl_wfh) = ?', [$tahunini])
             ->first();
 
-        // WFH SAYA — Perlu Tindakan (hanya pending & approved belum laporan, hide setelah laporan terisi → pindah ke history)
+        // WFH SAYA — Perlu Tindakan (pending & approved belum laporan, hide setelah laporan terisi → pindah ke history)
         $wfhSaya = DB::table('wfh')
             ->where('nik', $nik)
             ->where(function($q){
-                $q->whereIn('status', ['pending_atasan','pending_admin','rejected'])
+                $q->whereIn('status', ['pending_atasan','pending_admin'])
                   ->orWhere(function($q2){
                       $q2->where('status', 'approved')
                          ->where(function($q3){

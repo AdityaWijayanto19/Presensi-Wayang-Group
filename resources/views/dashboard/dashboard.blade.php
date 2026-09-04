@@ -237,6 +237,21 @@
                                             {{ $p->unit }} ({{ $p->perusahaan }})</div>
                                         <div class="text-[11px] text-[#57534e] mt-1">Laporan WFH menunggu persetujuan Anda
                                         </div>
+                                        @if(!empty($p->laporan_file))
+                                            <button type="button" class="file-pill js-preview mt-2"
+                                                data-url="{{ Storage::url($p->laporan_file) }}"
+                                                data-filename="{{ basename($p->laporan_file) }}"
+                                                data-label="Laporan WFH — {{ $p->nama_lengkap }} {{ date('d M Y', strtotime($p->tgl_wfh)) }}">
+                                                <i data-lucide="file-text"></i> Preview Laporan
+                                            </button>
+                                        @elseif(!empty($p->laporan_deskripsi))
+                                            <button type="button" class="file-pill js-preview-laporan mt-2"
+                                                data-deskripsi="{{ $p->laporan_deskripsi }}"
+                                                data-tgl="{{ date('d M Y', strtotime($p->tgl_wfh)) }}"
+                                                data-label="Laporan WFH — {{ $p->nama_lengkap }}">
+                                                <i data-lucide="clipboard"></i> Laporan
+                                            </button>
+                                        @endif
                                     </div>
                                     <div class="flex flex-col gap-1.5 shrink-0">
                                         <form action="/presensi/wfh/{{ $p->id }}/approve-laporan-atasan"
@@ -267,7 +282,7 @@
                             <span
                                 class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><i
                                     data-lucide="shield-check"></i></span>
-                            Perlu Persetujuan
+                            Pengajuan Perlu Persetujuan
                         </h3>
                     </div>
                     @foreach ($pendingAtasan as $p)
@@ -335,7 +350,7 @@
                             $label = match ($w->status) {
                                 'pending_atasan' => 'Menunggu Persetujuan',
                                 'pending_admin' => 'Menunggu Persetujuan',
-                                'approved' => 'Disetujui',
+                                'approved' => empty($w->laporan_deskripsi) ? 'Menunggu Laporan' : 'Disetujui',
                                 'rejected' => 'Ditolak',
                                 'unpaid' => 'Unpaid',
                                 default => $w->status,
@@ -701,9 +716,8 @@
                                     updateSection(section, '', 'pendingAtasan');
                                 } else {
                                     let html =
-                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><i data-lucide="shield-check"></i></span>Perlu Persetujuan (' +
-                                        count +
-                                        ')</h3><a href="/presensi/wfh" class="text-[11px] font-semibold text-amber-700">Lihat Semua</a></div>';
+                                        '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700"><i data-lucide="shield-check"></i></span>Pengajuan Perlu Persetujuan (' +
+                                        count + ')</h3></div>';
                                     data.pendingAtasan.forEach(function(p) {
                                         html +=
                                             '<div class="card mb-2 border-l-4 border-l-amber-400 bg-amber-50/50"><div class="card-body p-3"><div class="flex items-start justify-between gap-3"><div class="flex-1 min-w-0"><div class="text-[13px] font-bold text-[#1c1917]">' +
@@ -753,6 +767,13 @@
                                         '<div class="mt-6"><div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-bold text-[#1c1917] flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-700"><i data-lucide="file-text"></i></span>Laporan Perlu Persetujuan (' +
                                         count + ')</h3></div>';
                                     data.pendingLaporanAtasan.forEach(function(p) {
+                                        var previewBtn = '';
+                                        if (p.laporan_file) {
+                                            var laporanUrl = '/storage/' + p.laporan_file;
+                                            previewBtn = '<button type="button" class="file-pill js-preview mt-2" data-url="' + laporanUrl + '" data-filename="' + (p.laporan_file.split('/').pop() || '') + '" data-label="Laporan WFH — ' + (p.nama_lengkap || '') + '"><i data-lucide="file-text"></i> Preview Laporan</button>';
+                                        } else if (p.laporan_deskripsi) {
+                                            previewBtn = '<button type="button" class="file-pill js-preview-laporan mt-2" data-deskripsi="' + (p.laporan_deskripsi || '').replace(/"/g, '&quot;') + '" data-tgl="' + (p.tgl_wfh || '') + '" data-label="Laporan WFH — ' + (p.nama_lengkap || '') + '"><i data-lucide="clipboard"></i> Laporan</button>';
+                                        }
                                         html +=
                                             '<div class="card mb-2 border-l-4 border-l-violet-400 bg-violet-50/50"><div class="card-body p-3"><div class="flex items-start justify-between gap-3"><div class="flex-1 min-w-0"><div class="text-[13px] font-bold text-[#1c1917]">' +
                                             (p.nama_lengkap || '') +
@@ -761,7 +782,7 @@
                                             '</span></div><div class="text-[11px] text-[#78716c]">' + (p
                                                 .tgl_wfh || '') + ' • ' + (p.unit || '') + ' (' + (p
                                                 .perusahaan || '') +
-                                            ')</div><div class="text-[11px] text-[#57534e] mt-1">Laporan WFH menunggu persetujuan Anda</div></div><div class="flex flex-col gap-1.5 shrink-0"><form action="/presensi/wfh/' +
+                                            ')</div><div class="text-[11px] text-[#57534e] mt-1">Laporan WFH menunggu persetujuan Anda</div>' + previewBtn + '</div><div class="flex flex-col gap-1.5 shrink-0"><form action="/presensi/wfh/' +
                                             p.id +
                                             '/approve-laporan-atasan" method="POST"><input type="hidden" name="_token" value="' +
                                             CSRF +
@@ -806,7 +827,7 @@
                                             'Menunggu Persetujuan'
                                         ],
                                         'approved': ['bg-emerald-100 text-emerald-700 border-emerald-200',
-                                            'Disetujui'
+                                            ''
                                         ],
                                         'rejected': ['bg-rose-100 text-rose-700 border-rose-200', 'Ditolak'],
                                         'unpaid': ['bg-gray-100 text-gray-700 border-gray-200', 'Unpaid']
@@ -829,6 +850,11 @@
                                         var b = badgeMap[w.status] || [
                                             'bg-gray-100 text-gray-700 border-gray-200', w.status
                                         ];
+                                        if (w.status === 'approved' && !w.laporan_deskripsi) {
+                                            b = [b[0], 'Menunggu Laporan'];
+                                        } else if (w.status === 'approved') {
+                                            b = [b[0], 'Disetujui'];
+                                        }
                                         var dateStr = new Date(w.tgl_wfh).toLocaleDateString('id-ID', {
                                             day: '2-digit',
                                             month: 'short',

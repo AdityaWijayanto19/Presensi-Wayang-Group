@@ -523,17 +523,18 @@ class PresensiController extends Controller
         $karyawan = Auth::guard("karyawan")->user();
         $nik = $karyawan->nik;
 
-        // History WFH — approved + sudah input laporan ATAU unpaid
+        // History WFH — hanya status terminal (sudah tidak ada tahapan lagi)
         $datawfh = DB::table("wfh")
             ->leftJoin("karyawan as atasan", "wfh.atasan_nik", "=", "atasan.nik")
             ->where("wfh.nik", $nik)
             ->where(function ($q) {
-                // Approved + sudah input laporan
+                // Approved + laporan sudah approved atau rejected (terminal)
                 $q->where(function ($q2) {
                     $q2->where("wfh.status", WfhStatus::Approved->value)
-                        ->whereNotNull("wfh.laporan_deskripsi")
-                        ->where("wfh.laporan_deskripsi", "!=", "");
+                        ->whereIn("wfh.laporan_status", ["approved", "rejected"]);
                 });
+                // Atau pengajuan ditolak
+                $q->orWhere("wfh.status", WfhStatus::Rejected->value);
                 // Atau unpaid
                 $q->orWhere("wfh.status", WfhStatus::Unpaid->value);
             })
@@ -839,6 +840,58 @@ class PresensiController extends Controller
     }
 
     // =====================================================
+    // REVERSE GEOCODING (Nominatim / OpenStreetMap)
+    // =====================================================
+
+    private function reverseGeocode(string $coordinates): string
+    {
+        if (empty($coordinates) || $coordinates === '-') {
+            return '-';
+        }
+
+        $parts = array_map('floatval', explode(',', $coordinates));
+        if (count($parts) !== 2) {
+            return $coordinates;
+        }
+
+        $lat = $parts[0];
+        $lng = $parts[1];
+
+        try {
+            $url = sprintf(
+                'https://nominatim.openstreetmap.org/reverse?lat=%s&lon=%s&format=json&addressdetails=1&accept-language=id',
+                urlencode($lat),
+                urlencode($lng)
+            );
+
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL            => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 5,
+                CURLOPT_HTTPHEADER     => ['User-Agent: PresensiDigital/1.0'],
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200 || !$response) {
+                return $coordinates;
+            }
+
+            $data = json_decode($response, true);
+            if (!isset($data['display_name'])) {
+                return $coordinates;
+            }
+
+            return $data['display_name'];
+        } catch (\Exception $e) {
+            return $coordinates;
+        }
+    }
+
+    // =====================================================
     // LAPORAN WFH (setelah approved) - Full workflow
     // =====================================================
     public function buatLaporanWfh(int $id)
@@ -871,7 +924,9 @@ class PresensiController extends Controller
             return redirect()->back()->with('error', 'Laporan hanya bisa diisi setelah 7 jam absen masuk. Sisa waktu: ' . $sisa . ' jam.');
         }
 
-        return view("presensi.buat-laporan-wfh", compact("wfh"));
+        $liveLocation = $this->reverseGeocode($presensiToday->lokasi_in ?? '');
+
+        return view("presensi.buat-laporan-wfh", compact("wfh", "liveLocation"));
     }
 
     public function storeLaporanWfh(Request $request, int $id)
@@ -911,6 +966,10 @@ class PresensiController extends Controller
                 $laporanAtasanNik = null;
             }
 
+            $atasan = $laporanAtasanNik
+                ? \App\Models\Karyawan::where('nik', $laporanAtasanNik)->first()
+                : null;
+
             // Generate PDF Laporan
             $unit = $karyawan->unit;
             $jabatan = $karyawan->jabatan;
@@ -918,7 +977,10 @@ class PresensiController extends Controller
             $weekdayMap = ['Sunday'=>'Minggu','Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu','Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu'];
             $hariTanggal = $weekdayMap[now()->format('l')] . ', ' . now()->format('d F Y');
 
+            $liveLocation = $this->reverseGeocode($presensiToday->lokasi_in ?? '-');
+
             $pdfData = [
+                'headerSuratPath' => 'assets/img/header-surat.png',
                 'nik' => $nik,
                 'nama_lengkap' => $karyawan->nama_lengkap,
                 'jabatan' => $jabatan,
@@ -926,11 +988,15 @@ class PresensiController extends Controller
                 'unit' => $unit,
                 'perusahaan' => $perusahaan,
                 'tgl_wfh' => $wfh->tgl_wfh,
-                'live_location' => $presensiToday->lokasi_in ?? '-',
+                'live_location' => $liveLocation,
                 'keterangan' => $wfh->keterangan ?? '-',
                 'laporan_deskripsi' => $request->laporan_deskripsi,
                 'laporan_images' => $imagePaths,
                 'hariTanggal' => $hariTanggal,
+                'nama_atasan' => $atasan?->nama_lengkap ?? '-',
+                'jabatan_atasan' => $atasan?->jabatan instanceof Jabatan
+                    ? $atasan->jabatan->value
+                    : ($atasan?->jabatan ?? '-'),
             ];
 
             $stempelPath = WfhService::getStempelPath();
@@ -959,6 +1025,7 @@ class PresensiController extends Controller
                 $atasanUser = \App\Models\Karyawan::where('nik', $laporanAtasanNik)->first();
                 if ($atasanUser) {
                     $atasanUser->notify(new \App\Notifications\WfhSubmitted((object)$wfhUpdated, $karyawan));
+                    WfhService::sendWebPush($laporanAtasanNik, 'Laporan WFH Diajukan', $karyawan->nama_lengkap . ' mengajukan laporan WFH ' . $wfh->tgl_wfh, null, 'laporan-submitted-' . $id);
                 }
             } else {
                 $admins = \App\Models\User::role('administrator')->get();
@@ -995,6 +1062,7 @@ class PresensiController extends Controller
         $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
         if ($pengaju) {
             $pengaju->notify(new \App\Notifications\WfhApprovedByAtasan((object)$wfh, $karyawan));
+            WfhService::sendWebPush($wfh->nik, 'Laporan Disetujui Atasan', 'Laporan WFH ' . $wfh->tgl_wfh . ' disetujui atasan, menunggu persetujuan admin', null, 'laporan-approved-atasan-' . $wfh->id);
         }
         // Notify admin
         $admins = \App\Models\User::role('administrator')->get();
@@ -1020,6 +1088,7 @@ class PresensiController extends Controller
         $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
         if ($pengaju) {
             $pengaju->notify(new \App\Notifications\WfhRejected((object)$wfh, $request->rejected_reason));
+            WfhService::sendWebPush($wfh->nik, 'Laporan Ditolak Atasan', 'Laporan WFH ' . $wfh->tgl_wfh . ' ditolak atasan: ' . $request->rejected_reason, null, 'laporan-rejected-atasan-' . $wfh->id);
         }
         cache()->forget('pending_laporan_admin_count');
         return redirect()->back()->with('success', 'Laporan ditolak atasan');
