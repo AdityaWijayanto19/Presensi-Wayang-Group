@@ -84,7 +84,7 @@
                     <div class="mt-1">
                         @if ($disableToday)
                             <small class="text-[11px] text-red-500 block">
-                                Hari ini sudah lewat jam masuk. Minimal pengajuan H+1.
+                                Hari ini sudah lewat jam masuk, minimal 15 menit sebelum jam masuk.
                             </small>
                         @else
                             <small class="text-[11px] text-[#a8a29e] block">
@@ -108,7 +108,7 @@
                     <label class="text-[12px] font-semibold text-[#44403c] mb-1 block">Deskripsi Pekerjaan <span
                             class="text-red-500">*</span></label>
                     <textarea name="deskripsi_pekerjaan" id="deskripsi_pekerjaan" rows="5" class="form-control"
-                        placeholder="1. Mengembangkan fitur baru&#10;2. Testing dan debugging&#10;3. Dokumentasi hasil kerja" required>{{ old('deskripsi_pekerjaan') }}</textarea>
+                        placeholder="1. Menuliskan list pekerjaan&#10;2. List pekerjaan dibuat numerik/berurutan&#10;3. Dokumentasikan hasil kerja untuk laporan" required>{{ old('deskripsi_pekerjaan') }}</textarea>
                     <small class="text-[11px] text-[#a8a29e]"><span id="charCount">0</span>/2000 karakter • Maksimal 10
                         poin</small>
                 </div>

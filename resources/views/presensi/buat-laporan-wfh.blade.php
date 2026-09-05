@@ -70,7 +70,7 @@
                 {{-- Detail Hasil Pekerjaan (Deskripsi) --}}
                 <div class="form-group mb-3">
                     <label class="text-[12px] font-semibold text-[#44403c] mb-1 block">Deskripsi Hasil Pekerjaan <span class="text-red-500">*</span></label>
-                    <textarea name="laporan_deskripsi" id="deskripsi_laporan" rows="5" class="form-control" placeholder="1. Mengembangkan fitur baru&#10;2. Testing dan debugging&#10;3. Dokumentasi hasil kerja" required>{{ old('laporan_deskripsi', $wfh->laporan_deskripsi) }}</textarea>
+                    <textarea name="laporan_deskripsi" id="deskripsi_laporan" rows="5" class="form-control" placeholder="1. Menuliskan list pekerjaan&#10;2. List pekerjaan dibuat numerik/berurutan&#10;3. Dokumentasikan hasil kerja" required>{{ old('laporan_deskripsi', $wfh->laporan_deskripsi) }}</textarea>
                     <small class="text-[11px] text-[#a8a29e]"><span id="charCountDesk">0</span>/3000 karakter &bull; Maksimal 10 poin</small>
                 </div>
 
