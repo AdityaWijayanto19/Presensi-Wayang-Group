@@ -21,15 +21,23 @@ class MarkUnpaid extends Command
         // - tgl_wfh sudah lewat
         // - laporan kosong ATAU belum absen pulang
         $wfhList = DB::table('wfh')
-            ->leftJoin('presensi', function ($join) use ($hariIni) {
+            ->leftJoin('presensi', function ($join) {
                 $join->on('wfh.nik', '=', 'presensi.nik')
                      ->on('wfh.tgl_wfh', '=', 'presensi.tgl_presensi');
             })
             ->where('wfh.status', WfhStatus::Approved->value)
             ->where('wfh.tgl_wfh', '<', $hariIni)
             ->where(function ($q) {
+                // Kondisi 1: laporan kosong
                 $q->whereNull('wfh.laporan_deskripsi')
-                  ->orWhere('wfh.laporan_deskripsi', '')
+                  ->orWhere('wfh.laporan_deskripsi', '');
+            })
+            ->orWhere(function ($q) use ($hariIni) {
+                // Kondisi 2: laporan ada + belum absen pulang
+                $q->where('wfh.status', WfhStatus::Approved->value)
+                  ->where('wfh.tgl_wfh', '<', $hariIni)
+                  ->whereNotNull('wfh.laporan_deskripsi')
+                  ->where('wfh.laporan_deskripsi', '!=', '')
                   ->whereNull('presensi.jam_out');
             })
             ->select('wfh.*', 'presensi.jam_out')

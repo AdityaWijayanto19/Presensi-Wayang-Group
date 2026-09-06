@@ -209,7 +209,6 @@ $(function(){
         syncInput();
         renderPreviews();
         fileInput.setCustomValidity('');
-        this.value = '';
     });
 
     // ── Deskripsi Auto-Numbering ──────────────────────────
