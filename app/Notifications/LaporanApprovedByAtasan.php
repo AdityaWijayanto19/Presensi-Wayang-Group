@@ -5,7 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-class WfhApprovedByAtasan extends Notification
+class LaporanApprovedByAtasan extends Notification
 {
     use Queueable;
 
@@ -19,11 +19,11 @@ class WfhApprovedByAtasan extends Notification
     public function toDatabase(object $notifiable): array
     {
         return [
-            'type' => 'wfh_approved_atasan',
+            'type' => 'laporan_approved_atasan',
             'wfh_id' => $this->wfh->id,
             'tgl_wfh' => $this->wfh->tgl_wfh,
             'atasan_nama' => $this->atasan->nama_lengkap ?? '-',
-            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' disetujui oleh ' . ($this->atasan->nama_lengkap ?? 'Atasan') . ', menunggu persetujuan HR',
+            'message' => 'Laporan WFH tanggal ' . $this->wfh->tgl_wfh . ' disetujui oleh ' . ($this->atasan->nama_lengkap ?? 'Atasan') . ', menunggu persetujuan HR',
         ];
     }
 

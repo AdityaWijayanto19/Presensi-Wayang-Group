@@ -1024,13 +1024,13 @@ class PresensiController extends Controller
             if ($laporanAtasanNik) {
                 $atasanUser = \App\Models\Karyawan::where('nik', $laporanAtasanNik)->first();
                 if ($atasanUser) {
-                    $atasanUser->notify(new \App\Notifications\WfhSubmitted((object)$wfhUpdated, $karyawan));
+                    $atasanUser->notify(new \App\Notifications\LaporanSubmitted((object)$wfhUpdated, $karyawan));
                     WfhService::sendWebPush($laporanAtasanNik, 'Laporan WFH Diajukan', $karyawan->nama_lengkap . ' mengajukan laporan WFH ' . $wfh->tgl_wfh, null, 'laporan-submitted-' . $id);
                 }
             } else {
                 $admins = \App\Models\User::role('administrator')->get();
                 foreach ($admins as $admin) {
-                    $admin->notify(new \App\Notifications\WfhSubmitted((object)$wfhUpdated, $karyawan));
+                    $admin->notify(new \App\Notifications\LaporanSubmitted((object)$wfhUpdated, $karyawan));
                 }
             }
 
@@ -1061,12 +1061,12 @@ class PresensiController extends Controller
         // Notify pengaju
         $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
         if ($pengaju) {
-            $pengaju->notify(new \App\Notifications\WfhApprovedByAtasan((object)$wfh, $karyawan));
-            WfhService::sendWebPush($wfh->nik, 'Laporan Disetujui Atasan', 'Laporan WFH ' . $wfh->tgl_wfh . ' disetujui atasan, menunggu persetujuan admin', null, 'laporan-approved-atasan-' . $wfh->id);
+            $pengaju->notify(new \App\Notifications\LaporanApprovedByAtasan((object)$wfh, $karyawan));
+            WfhService::sendWebPush($wfh->nik, 'Laporan Disetujui Atasan', 'Laporan WFH ' . $wfh->tgl_wfh . ' disetujui atasan, menunggu persetujuan HR', null, 'laporan-approved-atasan-' . $wfh->id);
         }
         // Notify admin
         $admins = \App\Models\User::role('administrator')->get();
-        foreach ($admins as $admin) $admin->notify(new \App\Notifications\WfhSubmitted((object)$wfh, $pengaju));
+        foreach ($admins as $admin) $admin->notify(new \App\Notifications\LaporanSubmitted((object)$wfh, $pengaju));
         cache()->forget('pending_laporan_admin_count');
 
         return redirect()->back()->with('success', 'Laporan disetujui atasan, diteruskan ke Admin');
@@ -1087,7 +1087,7 @@ class PresensiController extends Controller
         ]);
         $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
         if ($pengaju) {
-            $pengaju->notify(new \App\Notifications\WfhRejected((object)$wfh, $request->rejected_reason));
+            $pengaju->notify(new \App\Notifications\LaporanRejected((object)$wfh, $request->rejected_reason));
             WfhService::sendWebPush($wfh->nik, 'Laporan Ditolak Atasan', 'Laporan WFH ' . $wfh->tgl_wfh . ' ditolak atasan: ' . $request->rejected_reason, null, 'laporan-rejected-atasan-' . $wfh->id);
         }
         cache()->forget('pending_laporan_admin_count');
@@ -1112,11 +1112,11 @@ class PresensiController extends Controller
         ]);
         $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
         if ($pengaju) {
-            $pengaju->notify(new \App\Notifications\WfhApproved((object)$wfh));
-            WfhService::sendWebPush($wfh->nik, "Laporan Disetujui Admin", "Laporan WFH " . $wfh->tgl_wfh . " telah disetujui.", null, 'laporan-approved-admin-' . $wfh->id);
+            $pengaju->notify(new \App\Notifications\LaporanApproved((object)$wfh));
+            WfhService::sendWebPush($wfh->nik, "Laporan Disetujui HR", "Laporan WFH " . $wfh->tgl_wfh . " telah disetujui.", null, 'laporan-approved-admin-' . $wfh->id);
         }
         cache()->forget('pending_laporan_admin_count');
-        return redirect()->back()->with('success', 'Laporan disetujui Admin');
+        return redirect()->back()->with('success', 'Laporan disetujui HR');
     }
 
     public function rejectLaporanAdmin(Request $request, int $id)
@@ -1135,7 +1135,7 @@ class PresensiController extends Controller
         ]);
         $pengaju = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
         if ($pengaju) {
-            $pengaju->notify(new \App\Notifications\WfhRejected((object)$wfh, $request->rejected_reason));
+            $pengaju->notify(new \App\Notifications\LaporanRejected((object)$wfh, $request->rejected_reason));
             WfhService::sendWebPush($wfh->nik, "Laporan Ditolak Admin", "Laporan WFH " . $wfh->tgl_wfh . " ditolak Admin", null, 'laporan-rejected-admin-' . $wfh->id);
         }
         cache()->forget('pending_laporan_admin_count');

@@ -10,7 +10,7 @@ class WfhMarkedUnpaid extends Notification
 {
     use Queueable;
 
-    public function __construct(public $wfh) {}
+    public function __construct(public $wfh, public string $reason = 'belum upload laporan') {}
 
     public function via(object $notifiable): array
     {
@@ -23,7 +23,8 @@ class WfhMarkedUnpaid extends Notification
             'type' => 'wfh_unpaid',
             'wfh_id' => $this->wfh->id,
             'tgl_wfh' => $this->wfh->tgl_wfh,
-            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
+            'reason' => $this->reason,
+            'message' => 'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena ' . $this->reason,
         ];
     }
 
@@ -37,7 +38,7 @@ class WfhMarkedUnpaid extends Notification
         WfhService::sendWebPush(
             $notifiable->nik,
             'WFH Unpaid',
-            'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
+            'WFH tanggal ' . $this->wfh->tgl_wfh . ' ditandai sebagai Unpaid karena ' . $this->reason,
             '/presensi/wfh',
             'wfh-unpaid-' . $this->wfh->id
         );

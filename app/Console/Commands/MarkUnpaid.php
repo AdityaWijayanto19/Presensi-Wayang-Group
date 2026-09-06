@@ -10,18 +10,29 @@ use App\Notifications\WfhMarkedUnpaid;
 class MarkUnpaid extends Command
 {
     protected $signature = 'wfh:mark-unpaid';
-    protected $description = 'Mark approved WFH as unpaid if laporan was not submitted before midnight';
+    protected $description = 'Mark approved WFH as unpaid if laporan not submitted or absen pulang missing';
 
     public function handle()
     {
-        // 1. Query WFH yang akan jadi unpaid (sebelum update)
+        $hariIni = date('Y-m-d');
+
+        // Query WFH yang akan jadi unpaid:
+        // - status approved
+        // - tgl_wfh sudah lewat
+        // - laporan kosong ATAU belum absen pulang
         $wfhList = DB::table('wfh')
-            ->where('status', WfhStatus::Approved->value)
-            ->where('tgl_wfh', '<', date('Y-m-d'))
-            ->where(function ($q) {
-                $q->whereNull('laporan_deskripsi')
-                  ->orWhere('laporan_deskripsi', '');
+            ->leftJoin('presensi', function ($join) use ($hariIni) {
+                $join->on('wfh.nik', '=', 'presensi.nik')
+                     ->on('wfh.tgl_wfh', '=', 'presensi.tgl_presensi');
             })
+            ->where('wfh.status', WfhStatus::Approved->value)
+            ->where('wfh.tgl_wfh', '<', $hariIni)
+            ->where(function ($q) {
+                $q->whereNull('wfh.laporan_deskripsi')
+                  ->orWhere('wfh.laporan_deskripsi', '')
+                  ->whereNull('presensi.jam_out');
+            })
+            ->select('wfh.*', 'presensi.jam_out')
             ->get();
 
         if ($wfhList->isEmpty()) {
@@ -29,28 +40,24 @@ class MarkUnpaid extends Command
             return 0;
         }
 
-        // 2. Update status ke unpaid
+        // Update status ke unpaid
         $affected = DB::table('wfh')
-            ->where('status', WfhStatus::Approved->value)
-            ->where('tgl_wfh', '<', date('Y-m-d'))
-            ->where(function ($q) {
-                $q->whereNull('laporan_deskripsi')
-                  ->orWhere('laporan_deskripsi', '');
-            })
+            ->whereIn('id', $wfhList->pluck('id'))
             ->update(['status' => WfhStatus::Unpaid->value]);
 
         $this->info("Marked {$affected} WFH records as unpaid.");
 
-        // 3. Kirim notifikasi + web push ke setiap karyawan
+        // Kirim notifikasi + web push ke setiap karyawan
         foreach ($wfhList as $wfh) {
+            $reason = $this->determineReason($wfh);
             $karyawan = \App\Models\Karyawan::where('nik', $wfh->nik)->first();
+
             if ($karyawan) {
-                $karyawan->notify(new WfhMarkedUnpaid($wfh));
-                // Web push via WfhService
+                $karyawan->notify(new WfhMarkedUnpaid($wfh, $reason));
                 \App\Services\WfhService::sendWebPush(
                     $wfh->nik,
                     'WFH Unpaid',
-                    'WFH tanggal ' . $wfh->tgl_wfh . ' ditandai sebagai Unpaid karena belum upload laporan',
+                    'WFH tanggal ' . $wfh->tgl_wfh . ' ditandai sebagai Unpaid karena ' . $reason,
                     '/presensi/wfh',
                     'wfh-unpaid-' . $wfh->id
                 );
@@ -63,5 +70,16 @@ class MarkUnpaid extends Command
         cache()->forget('pending_wfh_admin_count');
 
         return 0;
+    }
+
+    private function determineReason(object $wfh): string
+    {
+        $hasLaporan = !empty($wfh->laporan_deskripsi);
+
+        if (!$hasLaporan) {
+            return 'belum upload laporan';
+        }
+
+        return 'belum absen pulang';
     }
 }

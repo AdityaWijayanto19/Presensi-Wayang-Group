@@ -352,7 +352,7 @@
                             };
                             $label = match ($w->status) {
                                 'pending_atasan' => 'Menunggu Persetujuan',
-                                'pending_admin' => 'Menunggu Persetujuan',
+                                'pending_admin' => 'Menunggu Persetujuan HR',
                                 'approved' => empty($w->laporan_deskripsi) ? 'Menunggu Laporan' : 'Disetujui',
                                 'rejected' => 'Ditolak',
                                 'unpaid' => 'Unpaid',
@@ -840,7 +840,7 @@
                                             'Menunggu Persetujuan'
                                         ],
                                         'pending_admin': ['bg-amber-100 text-amber-700 border-amber-200',
-                                            'Menunggu Persetujuan'
+                                            'Menunggu Persetujuan HR'
                                         ],
                                         'approved': ['bg-emerald-100 text-emerald-700 border-emerald-200',
                                             ''

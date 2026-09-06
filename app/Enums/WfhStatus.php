@@ -14,7 +14,7 @@ enum WfhStatus: string
     {
         return match ($this) {
             self::PendingAtasan => 'Menunggu Persetujuan',
-            self::PendingAdmin => 'Menunggu Persetujuan',
+            self::PendingAdmin => 'Menunggu Persetujuan HR',
             self::Approved => 'Disetujui',
             self::Rejected => 'Ditolak',
             self::Unpaid => 'Unpaid',

@@ -73,11 +73,11 @@
                             data-id="{{ $d->id }}">Tolak</button>
                     </div>
                 @elseif($status === 'approved')
-                    <span class="badge bg-success">Disetujui</span>
+                    <span class="badge bg-green-lt text-green">Pengajuan: Disetujui</span>
                 @elseif($status === 'rejected')
-                    <span class="badge bg-danger">Ditolak</span>
+                    <span class="badge bg-red-lt text-red">WFH: Ditolak</span>
                 @elseif($status === 'unpaid')
-                    <span class="badge bg-secondary">Unpaid</span>
+                    <span class="badge bg-gray-lt text-gray">WFH: Unpaid</span>
                 @endif
                 @if (!empty($d->laporan_status))
                     @php
